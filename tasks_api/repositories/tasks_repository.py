@@ -19,5 +19,4 @@ class TasksRepository:
     
     def delete_task(user_id: int, task_id: str) -> tuple | None:
         task = execute_query("DELETE FROM tasks WHERE user_id=? AND id=? RETURNING name, text, state, date", (user_id, task_id))
-        print(task)
         return task[0] if task else None

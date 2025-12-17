@@ -9,6 +9,7 @@ context = CryptContext(
 )
 
 class UserService:
+    """Сервис для работы с пользователями"""
     def create_new_user(login: str, password: str) -> bool:
         """Создает нового пользователя, возвращает успех или нет в bool"""
         if UserRepository.get_user_password(login):

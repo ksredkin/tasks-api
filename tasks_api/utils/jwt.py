@@ -1,10 +1,10 @@
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from tasks_api.core.config import JWT_EXPIRATION_TIME, JWT_ALGORITHM
+from tasks_api.repositories.user_repository import UserRepository
+from tasks_api.utils.response_factory import ResponseFactory
 from datetime import datetime, timezone, timedelta
 from fastapi import Depends, status
 from jose import jwt, JWTError
-from tasks_api.utils.response_factory import ResponseFactory
-from tasks_api.repositories.user_repository import UserRepository
 
 class JWTManager:
     """Класс для работы с jwt"""
@@ -33,11 +33,11 @@ class JWTManager:
                 raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "User not found")
             
             return int(user_id)
+        
         except ValueError:
             raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "Invalid user ID in token")
 
         except JWTError as e:
-            print(f"Ошибка JWT: {e}")
             raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "Invalid token")
 
     @classmethod

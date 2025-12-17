@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import os
 
 class EnvConfig:
+    """Singleton: загружает и хранит переменные из .env"""
     _instance = None
 
     def __new__(cls):
