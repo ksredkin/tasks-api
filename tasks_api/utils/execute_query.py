@@ -3,7 +3,7 @@ from tasks_api.utils.logger import Logger
 import sqlite3
 
 logger = Logger(__name__).get_logger()
-ellipsis_if_needs = lambda x: "..." if x > 100 else ""
+ellipsis_if_needs = lambda x: "..." if len(x) > 100 else ""
 
 def execute_query(query: str, params: tuple = ()):
     """Выполняет запрос к базе данных"""

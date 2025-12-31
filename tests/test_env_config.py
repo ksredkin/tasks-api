@@ -10,9 +10,14 @@ class TestEnvConfig(unittest.TestCase):
     def setUp(self):
         EnvConfig._instance = None
 
+    @classmethod
+    def tearDownClass(cls):
+        patch.stopall()
+        EnvConfig._instance = None
+
     @patch("tasks_api.utils.env_config.os.getenv")
     def test_singleton_pattern(self, mock_getenv):
-        mock_getenv.returns_value = "your_super_secret_key_here_must_be_at_least_32_chars"
+        mock_getenv.return_value = "your_super_secret_key_here_must_be_at_least_32_chars"
 
         config1 = EnvConfig()
         config2 = EnvConfig()

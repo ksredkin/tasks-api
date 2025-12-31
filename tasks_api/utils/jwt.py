@@ -1,14 +1,11 @@
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from tasks_api.core.config import JWT_EXPIRATION_TIME, JWT_ALGORITHM
-from tasks_api.repositories.user_repository import UserRepository
 from tasks_api.utils.response_factory import ResponseFactory
 from datetime import datetime, timezone, timedelta
-from fastapi import Depends, status
+from fastapi import status
 from jose import jwt, JWTError
 
 class JWTManager:
     """Класс для работы с jwt"""
-    _security = HTTPBearer()
     _secret_key = None
 
     @classmethod
@@ -17,25 +14,11 @@ class JWTManager:
             cls._secret_key = secret_key
 
     @classmethod
-    def get_user_id_from_jwt(cls, credentials: HTTPAuthorizationCredentials = Depends(_security)) -> int | None:
-        """Извлекает id из jwt токена"""
+    def decode_token(cls, token: str) -> dict:
+        """Извлекает payload токена"""
         try:
-            token = credentials.credentials
             payload = jwt.decode(token, cls._secret_key, algorithms=JWT_ALGORITHM)
-            user_id = payload.get("sub")
-
-            if user_id is None:
-                raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "Invalid token")
-            
-            user = UserRepository.get_user_login(user_id)
-            
-            if not user:
-                raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "User not found")
-            
-            return int(user_id)
-        
-        except ValueError:
-            raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "Invalid user ID in token")
+            return payload
 
         except JWTError as e:
             raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "Invalid token")

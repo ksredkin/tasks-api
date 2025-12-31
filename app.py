@@ -11,6 +11,7 @@ def main():
         check_database()
         start_api()
         logger.info("Завершение работы TasksAPI..")
+        
     except Exception as e:
         logger.critical(f"Не удалось запустить: {e}")
         raise
