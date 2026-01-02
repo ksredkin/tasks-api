@@ -7,7 +7,6 @@ class TasksRepository:
     
     def get_user_task(task_id: int, user_id: int) -> str | None:
         user_task = execute_query("SELECT name, text, state, date FROM tasks WHERE user_id=? AND id=?", (user_id, task_id))
-        print(user_task)
         return user_task[0] if user_task else None
     
     def create_task(user_id: int, name: str, text: str, state: str) -> tuple | None:
@@ -20,5 +19,4 @@ class TasksRepository:
     
     def delete_task(user_id: int, task_id: str) -> tuple | None:
         task = execute_query("DELETE FROM tasks WHERE user_id=? AND id=? RETURNING name, text, state, date", (user_id, task_id))
-        print(task)
         return task[0] if task else None

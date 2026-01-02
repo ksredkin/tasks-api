@@ -12,6 +12,7 @@ uvicorn = "^0.38.0"
 python-jose = "^3.5.0"
 passlib = "^1.7.4"
 dotenv = "^0.9.9"
+httpx = "^0.28.1"
 
 
 [build-system]

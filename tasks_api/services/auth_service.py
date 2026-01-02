@@ -10,8 +10,7 @@ class AuthService:
     def __init__(self, user_repo: UserRepository):
         self.user_repo = user_repo
 
-    @classmethod
-    def get_current_user(cls, credentials: HTTPAuthorizationCredentials = Depends(security)) -> int | None:
+    def get_current_user(self, credentials: HTTPAuthorizationCredentials = Depends(security)) -> int | None:
         """Извлекает id из jwt токена"""
         token = credentials.credentials
         payload = JWTManager.decode_token(token)
@@ -20,7 +19,22 @@ class AuthService:
         if user_id is None:
             raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "Invalid token")
         
-        user = UserRepository.get_user_login(user_id)
+        user = self.user_repo.get_user_login(user_id)
+        
+        if not user:
+            raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "Invalid user ID in token")
+            
+        return int(user_id)
+    
+    def _get_user_id_from_token(self, token: str) -> int | None:
+        """Извлекает id из jwt токена"""
+        payload = JWTManager.decode_token(token)
+        user_id = payload.get("sub")
+
+        if user_id is None:
+            raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "Invalid token")
+        
+        user = self.user_repo.get_user_login(user_id)
         
         if not user:
             raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "Invalid user ID in token")

@@ -9,5 +9,5 @@ CREATE TABLE IF NOT EXISTS tasks (
     "name" TEXT,
     "text" TEXT,
     "state" TEXT,
-    "date" TIMESTAMPTZ
-)
+    "date" TIMESTAMP
+);

@@ -7,17 +7,22 @@ from tasks_api.core.config import *
 from fastapi import FastAPI
 import uvicorn
 
+def create_app() -> FastAPI:
+    app = FastAPI()
+    app.include_router(tasks_router)
+    app.include_router(user_router)
+    return app
+
+def configure_app(app: FastAPI):
+    env_config = EnvConfig()
+    JWTManager.set_secret_key(env_config.get_secret_key())
+
 def start_api():
     try:
         logger = Logger(__name__).get_logger()
 
-        app = FastAPI()
-        
-        app.include_router(tasks_router)
-        app.include_router(user_router)
-        
-        env_config = EnvConfig()
-        JWTManager.set_secret_key(env_config.get_secret_key())
+        app = create_app()        
+        configure_app(app)
         
         logger.info(f"API запускается на {API_HOST}:{API_PORT}")
         uvicorn.run(app, host=API_HOST, port=API_PORT)
