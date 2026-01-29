@@ -1,10 +1,10 @@
 CREATE TABLE IF NOT EXISTS users (
-    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "id" SERIAL PRIMARY KEY,
     "login" TEXT,
     "password" TEXT
 );
 CREATE TABLE IF NOT EXISTS tasks (
-    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "id" SERIAL PRIMARY KEY,
     "user_id" INT,
     "name" TEXT,
     "text" TEXT,

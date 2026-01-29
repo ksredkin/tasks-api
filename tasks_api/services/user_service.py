@@ -4,8 +4,7 @@ from passlib.context import CryptContext
 
 context = CryptContext(
     schemes=["bcrypt"],
-    default="bcrypt",
-    bcrypt__rounds=13
+    deprecated="auto"
 )
 
 class UserService:

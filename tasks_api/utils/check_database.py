@@ -1,39 +1,79 @@
 from tasks_api.utils.env_config import EnvConfig
 from tasks_api.utils.logger import Logger
-import sqlite3
-import os
+import psycopg2
 
 logger = Logger(__name__).get_logger()
 
-def check_database(force_recreate: bool = False):
-    """Проверяет наличие базы данных, при отсутствии создает"""
+def check_database():
     env_config = EnvConfig()
-    DATABASE_PATH = env_config.get_database_path()
-    DATABASE_SCRIPT_PATH = env_config.get_database_script_path()
-
+    
+    db_name = env_config.get_db_name()
+    
     try:
-        logger.info("Проверка наличия базы данных")
-
-        if force_recreate and os.path.exists(DATABASE_PATH):
-            logger.info("Принудительное пересоздание базы данных")
-            os.unlink(DATABASE_PATH)
-
-        if os.path.exists(DATABASE_PATH) and not force_recreate:
-            logger.info("База данных уже существует")
-            return
-
-        if not force_recreate:
-            logger.info("База данных не найдена: создание новой")
-
-        with open(DATABASE_SCRIPT_PATH, "r") as f:
-            script = f.read()
-
-        with sqlite3.connect(DATABASE_PATH) as conn:
+        logger.info("Проверка PostgreSQL...")
+        
+        try:
+            conn = psycopg2.connect(
+                host=env_config.get_db_host(),
+                port=env_config.get_db_port(),
+                database=db_name,
+                user=env_config.get_db_user(),
+                password=env_config.get_db_password()
+            )
+            logger.info(f"База данных {db_name} существует")
+            conn.close()
+            
+        except psycopg2.OperationalError:
+            logger.info(f"База {db_name} не найдена, создаём...")
+            
+            conn = psycopg2.connect(
+                host=env_config.get_db_host(),
+                port=env_config.get_db_port(),
+                database="postgres",
+                user=env_config.get_db_user(),
+                password=env_config.get_db_password()
+            )
+            conn.autocommit = True
+            
             cursor = conn.cursor()
-            cursor.executescript(script)
+            cursor.execute(f'CREATE DATABASE "{db_name}"')
+            
+            cursor.close()
+            conn.close()
+            logger.info(f"База {db_name} создана")
+        
+        conn = psycopg2.connect(
+            host=env_config.get_db_host(),
+            port=env_config.get_db_port(),
+            database=db_name,
+            user=env_config.get_db_user(),
+            password=env_config.get_db_password()
+        )
+        conn.autocommit = False
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("SELECT * FROM users LIMIT 0")
+            logger.info("Таблица users существует")
+        except psycopg2.errors.UndefinedTable:
+            logger.info("Таблиц нет, создаём...")
+            
+            conn.rollback()
 
-        logger.info("База данных успешно создана")
+            sql_file = env_config.get_database_script_path()
+
+            with open(sql_file, 'r') as f:
+                sql_script = f.read()
+            
+            cursor.execute(sql_script)
+            conn.commit()
+            logger.info("Таблицы созданы")
+        
+        cursor.close()
+        conn.close()
+        
+        logger.info("PostgreSQL готов к работе")
     
     except Exception as e:
-        logger.critical(f"Ошибка при проверке наличия или создании базы данных: {e}")
+        logger.critical(f"Ошибка: {e}")
         raise

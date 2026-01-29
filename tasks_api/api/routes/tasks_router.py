@@ -14,7 +14,7 @@ def get_tasks(user_id: int = Depends(AuthService(UserRepository).get_current_use
         tasks_list = []
         if user_tasks:
             for task in user_tasks:
-                tasks_list.append({"id": task[0], "name": task[1], "text": task[2], "state": task[3], "date": task[4]})
+                tasks_list.append({"id": task[0], "name": task[1], "text": task[2], "state": task[3], "date": str(task[4])})
 
         return ResponseFactory.success_response(data={"tasks": tasks_list})
     
@@ -29,7 +29,7 @@ def get_task(id: int, user_id: int = Depends(AuthService(UserRepository).get_cur
         if not task:
             raise ResponseFactory.error_response(status.HTTP_404_NOT_FOUND, "Not found")
 
-        return ResponseFactory.success_response(data={"task": {"id": id, "name": task[0], "text": task[1], "state": task[2], "date": task[3]}})
+        return ResponseFactory.success_response(data={"task": {"id": id, "name": task[0], "text": task[1], "state": task[2], "date": str(task[3])}})
     
     except HTTPException:
         raise
@@ -38,7 +38,7 @@ def get_task(id: int, user_id: int = Depends(AuthService(UserRepository).get_cur
 def create_task(task: Task, user_id: int = Depends(AuthService(UserRepository).get_current_user)):
     try:
         id, date = TasksRepository.create_task(user_id, task.name, task.text, task.state)
-        return ResponseFactory.success_response(status.HTTP_201_CREATED, "Task added successfully", {"task": {"id": id, "name": task.name, "text": task.text, "state": task.state, "date": date}})
+        return ResponseFactory.success_response(status.HTTP_201_CREATED, "Task added successfully", {"task": {"id": id, "name": task.name, "text": task.text, "state": task.state, "date": str(date)}})
     
     except HTTPException:
         raise
@@ -51,7 +51,7 @@ def update_task(task_id: int, task: Task, user_id: int = Depends(AuthService(Use
         if not date:
             raise ResponseFactory.error_response(status.HTTP_404_NOT_FOUND, "Task not found")
 
-        return ResponseFactory.success_response(status.HTTP_200_OK, "Task updated successfully", {"task": {"id": task_id, "name": task.name, "text": task.text, "state": task.state, "date": date}})
+        return ResponseFactory.success_response(status.HTTP_200_OK, "Task updated successfully", {"task": {"id": task_id, "name": task.name, "text": task.text, "state": task.state, "date": str(date)}})
     
     except HTTPException:
         raise
@@ -64,7 +64,7 @@ def delete_task(task_id: int, user_id: int = Depends(AuthService(UserRepository)
         if task is None:
             raise ResponseFactory.error_response(status.HTTP_404_NOT_FOUND, "Task not found")
 
-        return ResponseFactory.success_response(status.HTTP_200_OK, "Task deleted successfully", {"task": {"id": task_id, "name": task[0], "text": task[1], "state": task[2], "date": task[3]}})
+        return ResponseFactory.success_response(status.HTTP_200_OK, "Task deleted successfully", {"task": {"id": task_id, "name": task[0], "text": task[1], "state": task[2], "date": str(task[3])}})
     
     except HTTPException:
         raise

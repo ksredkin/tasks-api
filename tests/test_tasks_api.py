@@ -6,23 +6,51 @@ logger = Logger(__name__).get_logger()
 
 class TestTasksAPI(unittest.TestCase):
     @classmethod
+    def setUp(cls):
+        """Настройка перед каждым тестом"""
+        cls.clear_tasks()
+    
+    @classmethod
+    def clear_tasks(cls):
+        """Очищает таблицу задач между тестами"""
+        import psycopg2
+        from tasks_api.utils.env_config import EnvConfig
+        
+        config = EnvConfig()
+        
+        conn = psycopg2.connect(
+            host=config.get_db_host(),
+            port=config.get_db_port(),
+            database=config.get_db_name(),
+            user=config.get_db_user(),
+            password=config.get_db_password()
+        )
+
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM tasks")
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    @classmethod
     def setUpClass(cls):
         """Подготовка тестового клиента, временной базы, EnvConfig и JWTManager"""
         import os
-        import tempfile
+        import psycopg2
         
-        cls.temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
-        cls.temp_db.close()
-        
+        cls.test_db_name = "tasks_test_db"
+
         from tasks_api.utils.env_config import EnvConfig
         EnvConfig._instance = None
-        os.environ["DATABASE_PATH"] = cls.temp_db.name
-
-        from tasks_api.utils.check_database import check_database
-        from tasks_api.utils.jwt import JWTManager
-        from tasks_api.main import create_app
+        os.environ["DB_NAME"] = cls.test_db_name
+        config = EnvConfig()
         
-        check_database(force_recreate=True)
+        from tasks_api.utils.check_database import check_database
+        check_database()
+
+        from tasks_api.utils.jwt import JWTManager
+        from tasks_api.main import create_app        
 
         from tasks_api.repositories.user_repository import UserRepository
         cls.user_id = UserRepository.create_user("test@test.com", "password123")
@@ -35,11 +63,28 @@ class TestTasksAPI(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        import psycopg2
+        from tasks_api.utils.env_config import EnvConfig
+
+        config = EnvConfig()
+
+        conn = psycopg2.connect(
+            host=config.get_db_host(),
+            port=config.get_db_port(),
+            user=config.get_db_user(),
+            password=config.get_db_password(),
+            database="postgres"
+        )
+
+        conn.autocommit = True
+        cursor = conn.cursor()
+
+        cursor.execute(f"DROP DATABASE IF EXISTS {cls.test_db_name}")
+        cursor.close()
+        conn.close()
+
         import os
-        if os.path.exists(cls.temp_db.name):
-            os.unlink(cls.temp_db.name)
-        
-        del os.environ["DATABASE_PATH"]
+        del os.environ["DB_NAME"]
 
         from tasks_api.utils.env_config import EnvConfig
         from tasks_api.utils.jwt import JWTManager
@@ -113,7 +158,7 @@ class TestTasksAPI(unittest.TestCase):
         self.assertEqual(response_data["data"]["tasks"][0]["text"], "TestText")
         
         json_data2 = {"name": "Test2", "text": "TestText2", "state": "Done"}
-        response3 = self.client.put(f"/tasks/{task_id}", headers=headers, json=json_data2)  # <-- task_id
+        response3 = self.client.put(f"/tasks/{task_id}", headers=headers, json=json_data2)
         self.assertEqual(response3.status_code, 200)
         self.assertEqual(response3.json()["status"], "success")
         self.assertEqual(response3.json()["data"]["task"]["name"], "Test2")
@@ -122,7 +167,7 @@ class TestTasksAPI(unittest.TestCase):
         self.assertEqual(response4.json()["status"], "success")
         self.assertEqual(response4.json()["data"]["tasks"][0]["text"], "TestText2")
         
-        response5 = self.client.delete(f"/tasks/{task_id}", headers=headers)  # <-- task_id
+        response5 = self.client.delete(f"/tasks/{task_id}", headers=headers)
         self.assertEqual(response5.status_code, 200)
         self.assertEqual(response5.json()["status"], "success")
         
@@ -142,8 +187,3 @@ class TestTasksAPI(unittest.TestCase):
         headers2 = {"Authorization": f"Bearer {second_token}"}
         response = self.client.get(f"/tasks/{task_id}", headers=headers2)
         self.assertEqual(response.status_code, 404)
-
-    def setUp(self):
-        import sqlite3
-        with sqlite3.connect(self.temp_db.name) as conn:
-            conn.execute("DELETE FROM tasks")

@@ -26,13 +26,13 @@ class TestEnvConfig(unittest.TestCase):
         logger.info("Тест на singleton пройден")
 
     @patch('tasks_api.utils.env_config.os.getenv')
-    def test_no_secret_key(self, mock_getenv):
+    def test_no_db_data(self, mock_getenv):
         mock_getenv.return_value = None
 
         with self.assertRaises(ValueError) as context:
             config = EnvConfig()
 
-        self.assertEqual(str(context.exception), "SECRET_KEY не установлен в .env файле")
+        self.assertEqual(str(context.exception), "Отсутствуют переменные окружения: ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD']")
         logger.info("Тест на отсутствие SECRET_KEY пройден")
 
     @patch.dict(os.environ, {"SECRET_KEY": "your_super_secret_key_here_must_be_at_least_32_chars"})
