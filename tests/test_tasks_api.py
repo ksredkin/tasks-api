@@ -37,15 +37,18 @@ class TestTasksAPI(unittest.TestCase):
     def setUpClass(cls):
         """Подготовка тестового клиента, временной базы, EnvConfig и JWTManager"""
         import os
-        import psycopg2
         
         cls.test_db_name = "tasks_test_db"
 
         from tasks_api.utils.env_config import EnvConfig
         EnvConfig._instance = None
+
+        from tasks_api.utils.connection import db
+        db.reset()
+
         os.environ["DB_NAME"] = cls.test_db_name
         config = EnvConfig()
-        
+
         from tasks_api.utils.check_database import check_database
         check_database()
 
@@ -65,6 +68,9 @@ class TestTasksAPI(unittest.TestCase):
     def tearDownClass(cls):
         import psycopg2
         from tasks_api.utils.env_config import EnvConfig
+
+        from tasks_api.utils.connection import db
+        db.get_engine().dispose()
 
         config = EnvConfig()
 

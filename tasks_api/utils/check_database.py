@@ -1,37 +1,33 @@
 from tasks_api.utils.env_config import EnvConfig
 from tasks_api.utils.logger import Logger
 import psycopg2
+from sqlalchemy import create_engine
 
 logger = Logger(__name__).get_logger()
 
 def check_database():
-    env_config = EnvConfig()
-    
-    db_name = env_config.get_db_name()
-    
     try:
         logger.info("Проверка PostgreSQL...")
-        
+        config = EnvConfig()
+        db_name = config.get_db_name()
+
         try:
-            conn = psycopg2.connect(
-                host=env_config.get_db_host(),
-                port=env_config.get_db_port(),
-                database=db_name,
-                user=env_config.get_db_user(),
-                password=env_config.get_db_password()
-            )
-            logger.info(f"База данных {db_name} существует")
-            conn.close()
-            
-        except psycopg2.OperationalError:
+            engine = create_engine(f"postgresql+psycopg2://{config.get_db_user()}:{config.get_db_password()}@{config.get_db_host()}:{config.get_db_port()}/{db_name}")
+
+            with engine.connect() as _:
+                logger.info(f"База данных {db_name} существует")
+
+            engine.dispose()
+        
+        except Exception:
             logger.info(f"База {db_name} не найдена, создаём...")
             
             conn = psycopg2.connect(
-                host=env_config.get_db_host(),
-                port=env_config.get_db_port(),
+                host=config.get_db_host(),
+                port=config.get_db_port(),
                 database="postgres",
-                user=env_config.get_db_user(),
-                password=env_config.get_db_password()
+                user=config.get_db_user(),
+                password=config.get_db_password()
             )
             conn.autocommit = True
             
@@ -41,13 +37,13 @@ def check_database():
             cursor.close()
             conn.close()
             logger.info(f"База {db_name} создана")
-        
+
         conn = psycopg2.connect(
-            host=env_config.get_db_host(),
-            port=env_config.get_db_port(),
+            host=config.get_db_host(),
+            port=config.get_db_port(),
             database=db_name,
-            user=env_config.get_db_user(),
-            password=env_config.get_db_password()
+            user=config.get_db_user(),
+            password=config.get_db_password()
         )
         conn.autocommit = False
         cursor = conn.cursor()
@@ -60,7 +56,7 @@ def check_database():
             
             conn.rollback()
 
-            sql_file = env_config.get_database_script_path()
+            sql_file = config.get_database_script_path()
 
             with open(sql_file, 'r') as f:
                 sql_script = f.read()
@@ -72,6 +68,9 @@ def check_database():
         cursor.close()
         conn.close()
         
+        from tasks_api.utils.connection import db
+        db.reset()
+
         logger.info("PostgreSQL готов к работе")
     
     except Exception as e:
