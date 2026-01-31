@@ -70,7 +70,7 @@ class TestTasksAPI(unittest.TestCase):
         from tasks_api.utils.env_config import EnvConfig
 
         from tasks_api.utils.connection import db
-        db.get_engine().dispose()
+        db.reset()
 
         config = EnvConfig()
 
@@ -86,6 +86,7 @@ class TestTasksAPI(unittest.TestCase):
         cursor = conn.cursor()
 
         cursor.execute(f"DROP DATABASE IF EXISTS {cls.test_db_name}")
+        
         cursor.close()
         conn.close()
 

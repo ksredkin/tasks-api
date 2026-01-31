@@ -8,7 +8,6 @@ class Database:
         self.tables: dict = {}
     
     def _init_engine(self):
-        """Инициализирует engine при первом обращении"""
         if self.engine is None:
             config = EnvConfig()
             self.engine = create_engine(f"postgresql+psycopg2://{config.get_db_user()}:{config.get_db_password()}@{config.get_db_host()}:{config.get_db_port()}/{config.get_db_name()}")
@@ -16,7 +15,6 @@ class Database:
         return self.engine
     
     def _init_metadata(self):
-        """Инициализирует metadata при первом обращении"""
         if self.metadata is None:
             self.metadata = MetaData()
             self.metadata.reflect(bind=self.engine)
@@ -35,25 +33,18 @@ class Database:
         return self.tables[name]
     
     def reset(self):
-        """Сбросить подключение"""
+        """Закрыть подключения и очистить кэш"""
         if self.engine:
             self.engine.dispose()
-
         self.engine = None
         self.metadata = None
         self.tables.clear()
 
-        self.engine = self._init_engine()
-        self.metadata = self._init_metadata()
-
-    def _reset(self):
-        """Сбросить подключение"""
-        if self.engine:
-            self.engine.dispose()
-
-        self.engine = None
-        self.metadata = None
-        self.tables.clear()
+    def reconnect(self):
+        """Переподключиться с текущими настройками"""
+        self.reset()
+        self._init_engine()
+        self._init_metadata()
 
 db = Database()
 

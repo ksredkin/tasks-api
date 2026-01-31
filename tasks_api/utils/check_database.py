@@ -69,7 +69,7 @@ def check_database():
         conn.close()
         
         from tasks_api.utils.connection import db
-        db.reset()
+        db.reconnect()
 
         logger.info("PostgreSQL готов к работе")
     
