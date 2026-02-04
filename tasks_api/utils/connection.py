@@ -10,7 +10,14 @@ class Database:
     def _init_engine(self):
         if self.engine is None:
             config = EnvConfig()
-            self.engine = create_engine(f"postgresql+psycopg2://{config.get_db_user()}:{config.get_db_password()}@{config.get_db_host()}:{config.get_db_port()}/{config.get_db_name()}")
+            self.engine = create_engine(
+                f"postgresql+psycopg2://{config.get_db_user()}:{config.get_db_password()}@{config.get_db_host()}:{config.get_db_port()}/{config.get_db_name()}",
+                pool_size=5,
+                max_overflow=10,
+                pool_recycle=3600,
+                pool_pre_ping=True,
+                pool_timeout=5
+                )
         
         return self.engine
     
