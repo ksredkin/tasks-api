@@ -1,4 +1,4 @@
-from tasks_api.utils.connection import db
+from tasks_api.database.connection import db
 from sqlalchemy import select, insert, update, delete, func
 
 class TasksRepository:

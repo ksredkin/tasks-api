@@ -56,19 +56,26 @@ def check_database():
             
             conn.rollback()
 
-            sql_file = config.get_database_script_path()
+            logger.info("Применяем миграции Alembic...")
+            import subprocess
 
-            with open(sql_file, 'r') as f:
-                sql_script = f.read()
-            
-            cursor.execute(sql_script)
-            conn.commit()
+            result = subprocess.run(
+                ["alembic", "upgrade", "head"],
+                capture_output=True,
+                text=True
+            )
+
+            if result.returncode != 0:
+                logger.error(f"Ошибка миграций: {result.stderr}")
+                raise Exception("Миграции не применены")
+
+            logger.info("Миграции успешно применены")
             logger.info("Таблицы созданы")
         
         cursor.close()
         conn.close()
         
-        from tasks_api.utils.connection import db
+        from tasks_api.database.connection import db
         db.reconnect()
 
         logger.info("PostgreSQL готов к работе")

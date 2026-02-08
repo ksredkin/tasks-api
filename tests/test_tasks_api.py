@@ -43,7 +43,7 @@ class TestTasksAPI(unittest.TestCase):
         from tasks_api.utils.env_config import EnvConfig
         EnvConfig._instance = None
 
-        from tasks_api.utils.connection import db
+        from tasks_api.database.connection import db
         db.reset()
 
         os.environ["DB_NAME"] = cls.test_db_name
@@ -69,7 +69,7 @@ class TestTasksAPI(unittest.TestCase):
         import psycopg2
         from tasks_api.utils.env_config import EnvConfig
 
-        from tasks_api.utils.connection import db
+        from tasks_api.database.connection import db
         db.reset()
 
         config = EnvConfig()
