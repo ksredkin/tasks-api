@@ -55,8 +55,8 @@ class TestTasksAPI(unittest.TestCase):
         from tasks_api.utils.jwt import JWTManager
         from tasks_api.main import create_app        
 
-        from tasks_api.repositories.user_repository import UserRepository
-        cls.user_id = UserRepository.create_user("test@test.com", "password123")
+        from tasks_api.repositories.orm_user_repository import OrmUserRepository
+        cls.user_id = OrmUserRepository.create_user("test@test.com", "password123").id
 
         JWTManager.set_secret_key("test_secret_key")
         cls.token = JWTManager.create_jwt_token(cls.user_id)
@@ -182,9 +182,9 @@ class TestTasksAPI(unittest.TestCase):
 
     def test_cannot_access_other_user_task(self):
         """Пользователь не должен видеть задачи другого пользователя"""
-        from tasks_api.repositories.user_repository import UserRepository
+        from tasks_api.repositories.orm_user_repository import OrmUserRepository
         from tasks_api.utils.jwt import JWTManager
-        second_user_id = UserRepository.create_user("other@test.com", "password456")
+        second_user_id = OrmUserRepository.create_user("other@test.com", "password456").id
         second_token = JWTManager.create_jwt_token(second_user_id)
         
         task_data = {"name": "Private task", "text": "Only for user 1"}

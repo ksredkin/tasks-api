@@ -17,7 +17,7 @@ class TestUserService(unittest.TestCase):
         patch.stopall()
         JWTManager._secret_key = None
 
-    @patch("tasks_api.services.user_service.UserRepository.get_user_password")
+    @patch("tasks_api.services.user_service.OrmUserRepository.get_user_password_by_login")
     def test_create_new_user_if_exists(self, mock_get_user_password):
         mock_get_user_password.return_value = ["test_password", ]
 
@@ -28,22 +28,22 @@ class TestUserService(unittest.TestCase):
         
         logger.info("Тест на отсутствие создания пользователя, если он уже есть в базе, пройден")
 
-    @patch("tasks_api.services.user_service.UserRepository")
+    @patch("tasks_api.services.user_service.OrmUserRepository")
     def test_create_new_user(self, mock_user_repo):
-        mock_user_repo.get_user_password.return_value = None
+        mock_user_repo.get_user_password_by_login.return_value = None
         mock_user_repo.create_user.return_value = None
 
         result = UserService.create_new_user("test_login", "test_password")
         self.assertEqual(result, True)
 
-        mock_user_repo.get_user_password.assert_called_once_with("test_login")
+        mock_user_repo.get_user_password_by_login.assert_called_once_with("test_login")
         mock_user_repo.create_user.assert_called_once()
 
         logger.info("Тест на создание пользователя пройден")
 
-    @patch("tasks_api.services.user_service.UserRepository")
+    @patch("tasks_api.services.user_service.OrmUserRepository")
     def test_login_if_user_not_exists(self, user_repo):
-        user_repo.get_user_password.return_value = None
+        user_repo.get_user_by_login.return_value = None
 
         result = UserService.login("test_login", "test_password")
 
@@ -51,10 +51,16 @@ class TestUserService(unittest.TestCase):
 
         logger.info("Тест на вход в несуществующий аккаунт пройден")
 
-    @patch("tasks_api.services.user_service.UserRepository")
-    def test_login_if_password_is_incorrect(self, user_repo):
-        user_repo.get_user_password.return_value = context.hash("test_password")
-        user_repo.get_user_id.return_value = 1
+    @patch("tasks_api.services.user_service.context")
+    @patch("tasks_api.services.user_service.OrmUserRepository")
+    def test_login_if_password_is_incorrect(self, user_repo, context):
+        mock_user = Mock()
+        mock_user.id = 1
+        mock_user.login = "test_login"
+        mock_user.password = "hashed_password"
+        
+        user_repo.get_user_by_login.return_value = mock_user
+        context.verify.return_value = False
 
         JWTManager.set_secret_key("your_super_secret_key_here_must_be_at_least_32_chars")
 
@@ -64,10 +70,16 @@ class TestUserService(unittest.TestCase):
 
         logger.info("Тест на вход в несуществующий аккаунт пройден")
 
-    @patch("tasks_api.services.user_service.UserRepository")
-    def test_login(self, user_repo):
-        user_repo.get_user_password.return_value = context.hash("test_password")
-        user_repo.get_user_id.return_value = 1
+    @patch("tasks_api.services.user_service.context")
+    @patch("tasks_api.services.user_service.OrmUserRepository")
+    def test_login(self, user_repo, context):
+        mock_user = Mock()
+        mock_user.id = 1
+        mock_user.login = "test_login"
+        mock_user.password = "hashed_password"
+        
+        user_repo.get_user_by_login.return_value = mock_user
+        context.verify.return_value = True
 
         JWTManager.set_secret_key("your_super_secret_key_here_must_be_at_least_32_chars")
 
