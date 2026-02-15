@@ -1,18 +1,17 @@
 from tasks_api.utils.response_factory import ResponseFactory
-from tasks_api.models.user_register import UserRegister
 from tasks_api.services.user_service import UserService
 from fastapi import APIRouter, status, HTTPException
-from tasks_api.models.user_login import UserLogin
+from tasks_api.models.schemas import UserCreate, UserResponse, UserLogin
 
 user_router = APIRouter(prefix="/user")
 
-@user_router.post("/register")
-def register(user_register: UserRegister):
+@user_router.post("/register", response_model=UserResponse)
+def register(user_data: UserCreate):
     try:
-        is_succes = UserService.create_new_user(user_register.login, user_register.password)
-        if is_succes is False:
+        user = UserService.create_new_user(user_data.login, user_data.password)
+        if user is None:
             raise ResponseFactory.error_response(detail="Username already exists")
-        return ResponseFactory.success_response(message="User registered successfully")
+        return user
 
     except HTTPException:
         raise

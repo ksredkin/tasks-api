@@ -109,8 +109,7 @@ class TestTasksAPI(unittest.TestCase):
         headers = {"Authorization": f"Bearer {self.token}"}
         response = self.client.get("/tasks/", headers=headers).json()
         
-        self.assertEqual(response["status"], "success")
-        self.assertEqual(response["data"]["tasks"], [])
+        self.assertEqual(response, [])
         
         logger.info("Тест на возврат пустого списка при GET запросе на /tasks/ с jwt токеном пройден")
 
@@ -154,29 +153,26 @@ class TestTasksAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         
         task_data = response.json()
-        task_id = task_data["data"]["task"]["id"]
+        task_id = task_data["id"]
         
-        self.assertEqual(task_data["status"], "success")
-        self.assertEqual(task_data["data"]["task"]["name"], "Test1")
+        self.assertEqual(task_data["name"], "Test1")
         
         response = self.client.get("/tasks/", headers=headers)
         response_data = response.json()
-        self.assertEqual(response_data["status"], "success")
-        self.assertEqual(response_data["data"]["tasks"][0]["text"], "TestText")
+        logger.info("-"*40 + str(response_data))
+        self.assertEqual(response_data[0]["text"], "TestText")
         
         json_data2 = {"name": "Test2", "text": "TestText2", "state": "Done"}
         response3 = self.client.put(f"/tasks/{task_id}", headers=headers, json=json_data2)
         self.assertEqual(response3.status_code, 200)
-        self.assertEqual(response3.json()["status"], "success")
-        self.assertEqual(response3.json()["data"]["task"]["name"], "Test2")
+        logger.info("-"*40 + str(response3.json()))
+        self.assertEqual(response3.json()["name"], "Test2")
         
         response4 = self.client.get("/tasks/", headers=headers)
-        self.assertEqual(response4.json()["status"], "success")
-        self.assertEqual(response4.json()["data"]["tasks"][0]["text"], "TestText2")
+        self.assertEqual(response4.json()[0]["text"], "TestText2")
         
         response5 = self.client.delete(f"/tasks/{task_id}", headers=headers)
         self.assertEqual(response5.status_code, 200)
-        self.assertEqual(response5.json()["status"], "success")
         
         logger.info("Тест полного цикла работы TasksRouter пройден")
 
@@ -189,7 +185,7 @@ class TestTasksAPI(unittest.TestCase):
         
         task_data = {"name": "Private task", "text": "Only for user 1"}
         response = self.client.post("/tasks/", json=task_data, headers={"Authorization": f"Bearer {self.token}"})
-        task_id = response.json()["data"]["task"]["id"]
+        task_id = response.json()["id"]
         
         headers2 = {"Authorization": f"Bearer {second_token}"}
         response = self.client.get(f"/tasks/{task_id}", headers=headers2)

@@ -23,18 +23,23 @@ class TestUserService(unittest.TestCase):
 
         result = UserService.create_new_user("string", "test_password2")
         
-        self.assertEqual(result, False)
+        self.assertEqual(result, None)
         mock_get_user_password.assert_called_once_with("string")
         
         logger.info("Тест на отсутствие создания пользователя, если он уже есть в базе, пройден")
 
     @patch("tasks_api.services.user_service.OrmUserRepository")
     def test_create_new_user(self, mock_user_repo):
+        mock_user = Mock()
+        mock_user.id = 1
+        mock_user.login = "test_login"
+        mock_user.password = "hashed_password"
+        
         mock_user_repo.get_user_password_by_login.return_value = None
-        mock_user_repo.create_user.return_value = None
+        mock_user_repo.create_user.return_value = mock_user
 
         result = UserService.create_new_user("test_login", "test_password")
-        self.assertEqual(result, True)
+        self.assertEqual(result, mock_user)
 
         mock_user_repo.get_user_password_by_login.assert_called_once_with("test_login")
         mock_user_repo.create_user.assert_called_once()
