@@ -159,7 +159,6 @@ class TestTasksAPI(unittest.TestCase):
         
         response = self.client.get("/tasks/", headers=headers)
         response_data = response.json()
-        logger.info("-"*40 + str(response_data))
         self.assertEqual(response_data[0]["text"], "TestText")
         
         json_data2 = {"name": "Test2", "text": "TestText2", "state": "Done"}
