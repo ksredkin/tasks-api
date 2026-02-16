@@ -3,7 +3,7 @@ from tasks_api.api.routes.user_router import user_router
 from tasks_api.utils.env_config import EnvConfig
 from tasks_api.utils.jwt import JWTManager
 from tasks_api.utils.logger import Logger
-from tasks_api.core.config import *
+from tasks_api.core.config import API_HOST, API_PORT
 from fastapi import FastAPI
 import uvicorn
 
