@@ -11,7 +11,9 @@
 ![Unit Testing](https://img.shields.io/badge/Unit_Testing-4CAF50?style=for-the-badge&logo=testcafe&logoColor=white)
 ![Alembic](https://img.shields.io/badge/Alembic-00A98F?style=for-the-badge&logo=alembic&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
+REST API для управления задачами с аутентификацией JWT, миграциями базы данных, логированием и современной архитектурой на FastAPI.  
 REST API для управления задачами с аутентификацией JWT, миграциями базы данных, логированием и современной архитектурой на FastAPI.  
 
 ## 🎯 Особенности
@@ -20,6 +22,7 @@ REST API для управления задачами с аутентифика�
 - **Полное CRUD**: Создание, чтение, обновление и удаление задач
 - **ORM SQLAlchemy**: Современная работа с базой данных
 - **Миграции Alembic**: Управление версиями схемы базы данных
+- **Контейнеризация Docker**: Лёгкий запуск в изолированном окружении
 - **Контейнеризация Docker**: Лёгкий запуск в изолированном окружении
 - **Структурированная архитектура**: Четкое разделение на слои (API, сервисы, репозитории, модели)
 - **Логирование**: Детальное логирование всех операций в отдельные файлы
@@ -39,6 +42,8 @@ tasks-api/
 ├── alembic.ini              # Конфигурация Alembic
 ├── docker-compose.yml       # Оркестрация контейнеров (FastAPI + PostgreSQL)
 ├── Dockerfile               # Сборка образа приложения
+├── docker-compose.yml       # Оркестрация контейнеров (FastAPI + PostgreSQL)
+├── Dockerfile               # Сборка образа приложения
 ├── docs/
 │   └── README.md
 ├── .env                     # Конфигурация (не в репозитории)
@@ -54,7 +59,9 @@ tasks-api/
 │   ├── database/           # Модуль работы с базой данных
 │   │   ├── connection.py   # Управление соединением с БД через SQLAlchemy
 │   │   └── orm_models.py   # Модели SQLAlchemy
+│   │   └── orm_models.py   # Модели SQLAlchemy
 │   ├── models/             # Pydantic модели для API
+│   │   └── schemas.py      # Pydantic модели
 │   │   └── schemas.py      # Pydantic модели
 │   ├── api/
 │   │   └── routes/
@@ -78,6 +85,7 @@ tasks-api/
 │   ├── test_env_config.py   # Тесты конфигурации
 │   ├── test_tasks_api.py    # Тесты API задач
 │   ├── test_migrations.py   # Тест миграций
+│   ├── test_migrations.py   # Тест миграций
 │   ├── test_orm_repositories.py # Тесты репозиториев
 │   └── test_user_service.py # Тесты сервиса пользователей
 └── logs/                   # Директория для логов (не в репозитории)
@@ -96,16 +104,26 @@ cd tasks-api
 - **Docker Compose**: обычно входит в состав Docker Desktop, либо устанавливается отдельно (см. [документацию](https://docs.docker.com/compose/install/))
 
 Проверьте установку:
+### 2. Установите Docker и Docker Compose
+- **Docker**: [Инструкция для вашей ОС](https://docs.docker.com/get-docker/)
+- **Docker Compose**: обычно входит в состав Docker Desktop, либо устанавливается отдельно (см. [документацию](https://docs.docker.com/compose/install/))
+
+Проверьте установку:
 ```bash
+docker --version
+docker-compose --version
 docker --version
 docker-compose --version
 ```
 
 ### 3. Настройте окружение
+### 3. Настройте окружение
 ```bash
 # Скопируйте пример конфигурации
 cp .env.example .env
 
+# Отредактируйте .env файл при необходимости
+# По умолчанию параметры уже настроены для работы в Docker
 # Отредактируйте .env файл при необходимости
 # По умолчанию параметры уже настроены для работы в Docker
 ```
@@ -117,6 +135,8 @@ SECRET_KEY = "your_super_secret_key_here_must_be_at_least_32_ch@rs"
 
 # Настройки подключения к PostgreSQL (для Docker-сети используйте имя сервиса)
 DB_HOST = "postgres"          # Имя сервиса PostgreSQL в docker-compose.yml
+# Настройки подключения к PostgreSQL (для Docker-сети используйте имя сервиса)
+DB_HOST = "postgres"          # Имя сервиса PostgreSQL в docker-compose.yml
 DB_PORT = 5432
 DB_NAME = "tasks_db"
 DB_USER = "postgres"
@@ -125,7 +145,8 @@ DB_PASSWORD = "postgres"
 
 ### 4. Запустите приложение через Docker Compose
 ```bash
-docker-compose up --build
+docker-compose build
+docker-compose up
 ```
 
 После сборки и запуска будут доступны:
@@ -133,14 +154,16 @@ docker-compose up --build
 - **Документация Swagger**: http://localhost:8000/docs
 - **База данных PostgreSQL**: `localhost:5432` (логин/пароль из .env)
 
-Для остановки: `Ctrl+C` или `docker-compose down`
+Для остановки: `docker-compose down`
 
 ### 5. Альтернативный запуск (без Docker, через Poetry)
 Если вы хотите запустить приложение локально (без контейнеров), выполните:
 ```bash
 poetry install
+poetry install
 poetry run python app.py
 ```
+При этом PostgreSQL должен быть установлен и настроен отдельно.
 При этом PostgreSQL должен быть установлен и настроен отдельно.
 
 ### 🔓 Публичные эндпоинты (без аутентификации)
@@ -253,7 +276,12 @@ Authorization: Bearer {access_token}
 
 Миграции применяются автоматически при запуске контейнера (выполняется `alembic upgrade head`).  
 Для ручного управления можно зайти в контейнер:
+Миграции применяются автоматически при запуске контейнера (выполняется `alembic upgrade head`).  
+Для ручного управления можно зайти в контейнер:
 ```bash
+docker exec -it tasks-api-api-1 bash   # имя контейнера может отличаться
+alembic current
+alembic upgrade head
 docker exec -it tasks-api-api-1 bash   # имя контейнера может отличаться
 alembic current
 alembic upgrade head
