@@ -49,11 +49,9 @@ tasks-api/
 │   │   └── config.py       # Конфигурация приложения
 │   ├── database/           # Модуль работы с базой данных
 │   │   ├── connection.py   # Управление соединением с БД через SQLAlchemy
-│   │   └── models.py       # Модели SQLAlchemy (заменили отдельные файлы)
+│   │   └── orm_models.py       # Модели SQLAlchemy
 │   ├── models/             # Pydantic модели для API
-│   │   ├── task.py         # Модель задачи
-│   │   ├── user_login.py   # Модель входа пользователя
-│   │   └── user_register.py # Модель регистрации пользователя
+│   │   ├── schemas.py         # Pydantic модели
 │   ├── api/
 │   │   └── routes/
 │   │       ├── tasks_router.py  # Маршруты для задач
@@ -62,8 +60,8 @@ tasks-api/
 │   │   ├── auth_service.py      # Сервис аутентификации
 │   │   └── user_service.py      # Сервис пользователей
 │   ├── repositories/
-│   │   ├── tasks_repository.py  # Репозиторий задач (SQLAlchemy)
-│   │   └── user_repository.py   # Репозиторий пользователей (SQLAlchemy)
+│   │   ├── orm_tasks_repository.py  # Репозиторий задач (SQLAlchemy)
+│   │   └── orm_user_repository.py   # Репозиторий пользователей (SQLAlchemy)
 │   └── utils/
 │       ├── check_database.py    # Утилита проверки БД
 │       ├── env_config.py        # Загрузка конфигурации
@@ -75,6 +73,8 @@ tasks-api/
 │   ├── test_auth_service.py # Тесты сервиса аутентификации
 │   ├── test_env_config.py   # Тесты конфигурации
 │   ├── test_tasks_api.py    # Тесты API задач
+│   ├── test_orm_repositories.py # Тест миграций
+│   ├── test_orm_repositories.py # Тесты репозиториев
 │   └── test_user_service.py # Тесты сервиса пользователей
 └── logs/                   # Директория для логов (не в репозитории)
 ```
@@ -181,8 +181,8 @@ Content-Type: application/json
 **Пример ответа:**
 ```json
 {
-  "status": "success",
-  "message": "User registered successfully"
+  "login": "string",
+  "id": 53
 }
 ```
 
@@ -243,17 +243,12 @@ Content-Type: application/json
 **Пример ответа:**
 ```json
 {
-  "status": "success",
-  "message": "Task added successfully",
-  "data": {
-    "task": {
-      "id": 2,
-      "name": "Пример задачи",
-      "text": "Описание задачи",
-      "state": "Awaiting completion",
-      "date": "2026-01-02T15:28:21"
-    }
-  }
+  "name": "string",
+  "text": "string",
+  "state": "string",
+  "id": 40,
+  "date": "2026-02-16T09:30:30.570438+03:00",
+  "user_id": 53
 }
 ```
 
