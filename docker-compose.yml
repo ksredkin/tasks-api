@@ -7,32 +7,51 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    env_file:
+      - ./tasks_api/.env
+    volumes:
+      - tasks_postgres_data:/var/lib/postgresql/data
     networks:
-      - tasks-net
+      - tasks-postgres-net
 
   api:
-    build: .
+    build: ./tasks_api
     container_name: tasks-api
     restart: unless-stopped
     depends_on:
       - postgres
     env_file:
-      - .env
+      - ./tasks_api/.env
     ports:
       - "8000:8000"
     volumes:
-      - ./logs:/app/logs
+      - ./tasks_api:/app
+    networks:
+      - tasks-net
+      - tasks-postgres-net
+
+  bot:
+    build: ./bot
+    container_name: tasks-bot
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      - API_PORT=8000
+      - API_HOST=api
+    volumes:
+      - ./bot:/app
     networks:
       - tasks-net
 
 networks:
   tasks-net:
     driver: bridge
+  tasks-postgres-net:
+    driver: bridge
 
 volumes:
-  postgres_data:
+  tasks_postgres_data:
     name: tasks-postgres-data
