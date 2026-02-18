@@ -1,0 +1,23 @@
+[project]
+name = "bot"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "ksredkin",email = "ksredkin0968@gmail.com"}
+]
+requires-python = ">=3.13,<3.15"
+dependencies = [
+    "aiogram (>=3.25.0,<4.0.0)",
+    "dotenv (>=0.9.9,<0.10.0)",
+    "sqlalchemy (>=2.0.46,<3.0.0)",
+    "psycopg2 (>=2.9.11,<3.0.0)",
+    "asyncpg (>=0.31.0,<0.32.0)",
+    "requests (>=2.32.5,<3.0.0)",
+    "alembic (>=1.18.4,<2.0.0)",
+    "httpx (>=0.28.1,<0.29.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
