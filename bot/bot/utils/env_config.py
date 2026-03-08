@@ -15,26 +15,11 @@ class EnvConfig():
         load_dotenv()
 
         self.token = os.getenv("TOKEN")
-
-        self.db_user = os.getenv("DB_USER", "postgres")
-        self.db_password = os.getenv("DB_PASSWORD")
-        self.db_host = os.getenv("DB_HOST")
-        self.db_port = os.getenv("DB_PORT")
-        self.db_name = os.getenv("DB_NAME", "bot_db")
-
         self.api_host = os.getenv("API_HOST")
         self.api_port = os.getenv("API_PORT", 8000)
 
         if not self.token:
             raise ValueError("TOKEN бота не установлен в .env файле")
-        
-        if not self.db_password:
-            raise ValueError("DB_PASSWORD не установлен в .env файле")
-        if not self.db_host:
-            raise ValueError("DB_HOST не установлен в .env файле")
-        if not self.db_port:
-            raise ValueError("DB_PORT не установлен в .env файле")
-        
         if not self.api_host:
             raise ValueError("API_HOST не установлен в .env файле")
 
