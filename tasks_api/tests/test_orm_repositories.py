@@ -17,8 +17,6 @@ class TestOrmRepositories(unittest.TestCase):
         from tasks_api.database.connection import db
         db.reconnect()
 
-        cls.logger.info("-"*40 + config.get_db_name())
-
         from tasks_api.utils.check_database import check_database
         check_database()
 
@@ -139,6 +137,26 @@ class TestOrmRepositories(unittest.TestCase):
         self.assertEqual(user_tasks[0].text, self.test_task_text)
 
         self.logger.info("Тест репозитория на получение всех задач пройден")
+
+    def test_get_user_tasks_today(self):
+        from tasks_api.repositories.orm_user_repository import OrmUserRepository
+        test_user_login = "test_get_user_tasks_today"
+        user = OrmUserRepository.create_user(test_user_login, "test_password")
+        self.assertIsNotNone(user)
+
+        from tasks_api.repositories.orm_task_repository import OrmTaskRepository
+        from datetime import datetime, timezone, timedelta
+        task = OrmTaskRepository.create_task(user.id, self.test_task_name, self.test_task_text, self.test_task_state, self.test_folder_id, visible_from=(datetime.now(timezone.utc) - timedelta(days=1)))
+        self.assertIsNotNone(task)
+
+        second_task = OrmTaskRepository.create_task(user.id, self.test_task_name, self.test_task_text, self.test_task_state, self.test_folder_id, visible_from=(datetime.now(timezone.utc) + timedelta(days=1)))
+        self.assertIsNotNone(task)
+
+        user_tasks_today = OrmTaskRepository.get_user_tasks_today(user.id)
+        self.assertEqual(user_tasks_today[0].id, task.id)
+        self.assertEqual(len(user_tasks_today), 1)
+
+        self.logger.info("Тест репозитория на получение задач на сегодня пройден")
 
     def test_get_user_task_by_id(self):
         from tasks_api.repositories.orm_user_repository import OrmUserRepository

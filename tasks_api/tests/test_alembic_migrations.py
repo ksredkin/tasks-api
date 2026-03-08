@@ -1,41 +1,41 @@
 import unittest
+import os
+from tasks_api.utils.env_config import EnvConfig
+from tasks_api.utils.logger import Logger
+import psycopg2
+import subprocess
 
 class TestAlembicMigrations(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        from tasks_api.utils.logger import Logger
         cls.logger = Logger(__name__).get_logger()
 
-        from tasks_api.utils.env_config import EnvConfig
         EnvConfig._instance = None
-
-        import os
         os.environ["DB_NAME"] = "test_migrations_db"
-
         config = EnvConfig()
 
-        import psycopg2
-        conn = psycopg2.connect(
-            host=config.get_db_host(),
-            port=config.get_db_port(),
-            database="postgres",
-            user=config.get_db_user(),
-            password=config.get_db_password()
-        )
+        try:
+            conn = psycopg2.connect(
+                host=config.get_db_host(),
+                port=config.get_db_port(),
+                database="postgres",
+                user=config.get_db_user(),
+                password=config.get_db_password()
+            )
 
-        conn.autocommit = True
-        cursor = conn.cursor()
-        cursor.execute(f'CREATE DATABASE "{config.get_db_name()}"')
-        
-        cursor.close()
-        conn.close()
+            conn.autocommit = True
+            cursor = conn.cursor()
+            cursor.execute(f'CREATE DATABASE "{config.get_db_name()}"')
+            
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            cls.logger.critical("="*1000 + f"Не удалось создать базу данных при тесте миграций: {e}")
 
     @classmethod
     def tearDownClass(cls):
-        from tasks_api.utils.env_config import EnvConfig
         config = EnvConfig()
 
-        import psycopg2
         conn = psycopg2.connect(
             host=config.get_db_host(),
             port=config.get_db_port(),
@@ -53,19 +53,18 @@ class TestAlembicMigrations(unittest.TestCase):
 
         EnvConfig._instance = None
 
-        import os
         del os.environ["DB_NAME"]
 
     def test_alembic_migrations(self):
-        import subprocess
-        result = subprocess.run(["alembic", "upgrade", "head"], capture_output=True, text=True)
-
+        result = subprocess.run(
+            ["alembic", "upgrade", "head"],
+            capture_output=True,
+            text=True
+        )
         self.assertEqual(result.returncode, 0)
 
-        from tasks_api.utils.env_config import EnvConfig
         config = EnvConfig()
 
-        import psycopg2
         conn = psycopg2.connect(
             host=config.get_db_host(),
             port=config.get_db_port(),
@@ -102,5 +101,4 @@ class TestAlembicMigrations(unittest.TestCase):
         conn.close()
 
         self.assertEqual(result, [('alembic_version',)])
-
         self.logger.info("Тест миграций прошел успешно.")

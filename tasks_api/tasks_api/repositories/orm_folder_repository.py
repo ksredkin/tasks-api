@@ -1,6 +1,7 @@
 from tasks_api.database.orm_models import Folder, User
 from tasks_api.database.connection import db
 from tasks_api.utils.logger import Logger
+from sqlalchemy.orm import joinedload
 
 logger = Logger(__name__).get_logger()
 
@@ -106,6 +107,32 @@ class OrmFolderRepository:
         except Exception as e:
             session.rollback()
             logger.warning(f"Не удалось получить папки пользователя: {e}")
+            return None
+        finally:
+            session.close()
+
+    @staticmethod
+    def get_folders_stats(user_id: int) -> dict | None:
+        session = db.get_session()
+        try:
+            folders = session.query(Folder).filter(Folder.user_id == user_id).options(joinedload(Folder.tasks)).all()
+
+            if not folders:
+                return None
+
+            by_folder = {}
+            for folder in folders:
+                tasks = folder.tasks
+                total = len(tasks)
+                done = len([task for task in tasks if task.state == "Done"])
+                active = len([task for task in tasks if task.state == "Active"])
+                completion_rate = round((done / total * 100) if total > 0 else 0.0, 2)
+
+                by_folder[folder.name] = {"total": total, "done": done, "active": active, "completion_rate": completion_rate}
+            
+            return by_folder
+        except Exception as e:
+            logger.warning(f"Не удалось получить статистику пользователя по папкам: {e}")
             return None
         finally:
             session.close()

@@ -19,6 +19,15 @@ def get_folders(user_id: int = Depends(AuthService(OrmUserRepository).get_curren
     except Exception:
         raise
 
+@folders_router.get("/stats", status_code=200)
+def get_folders_stats(user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
+    try:
+        stats = OrmFolderRepository.get_folders_stats(user_id)
+        return stats or {}
+    
+    except Exception:
+        raise
+
 @folders_router.get("/{folder_id}", response_model=FolderResponse)
 def get_folder(folder_id: int, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
     try:

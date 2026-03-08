@@ -37,6 +37,9 @@ class EnvConfig:
     
     def get_db_password(self):
         return os.getenv("DB_PASSWORD", "")
+    
+    def get_api_key(self):
+        return os.getenv("API_KEY", "")
 
     def check_database_env_vars(self):
         required_vars = [

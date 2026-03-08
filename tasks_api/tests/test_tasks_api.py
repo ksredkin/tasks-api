@@ -164,7 +164,6 @@ class TestTasksAPI(unittest.TestCase):
         json_data2 = {"name": "Test2", "text": "TestText2", "state": "Done"}
         response3 = self.client.put(f"/tasks/{task_id}", headers=headers, json=json_data2)
         self.assertEqual(response3.status_code, 200)
-        logger.info("-"*40 + str(response3.json()))
         self.assertEqual(response3.json()["name"], "Test2")
         
         response4 = self.client.get("/tasks/", headers=headers)
@@ -189,3 +188,20 @@ class TestTasksAPI(unittest.TestCase):
         headers2 = {"Authorization": f"Bearer {second_token}"}
         response = self.client.get(f"/tasks/{task_id}", headers=headers2)
         self.assertEqual(response.status_code, 404)
+
+    def test_get_tasks_today(self):
+        """Пользователь не должен видеть задачу с visible_from на завтра и видеть с visible_from со вчера"""
+        headers = {"Authorization": f"Bearer {self.token}"}
+        
+        from datetime import datetime, timezone, timedelta
+        task_data = {"name": "Private task", "text": "Only for user 1", "visible_from": (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()}
+        response = self.client.post("/tasks/", json=task_data, headers=headers)
+        task_id = response.json()["id"]
+        
+        second_task_data = {"name": "Private task", "text": "Only for user 1", "visible_from": (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()}
+        response = self.client.post("/tasks/", json=second_task_data, headers=headers)
+
+        response = self.client.get(f"/tasks/today", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()[0]["id"], task_id)
+        self.assertEqual(len(response.json()), 1)

@@ -61,3 +61,6 @@ class EnvConfig():
     
     def get_api_host(self) -> str:
         return self.api_host 
+    
+    def get_api_key(self) -> str:
+        return os.getenv("API_KEY")

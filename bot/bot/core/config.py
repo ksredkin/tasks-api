@@ -1,1 +1,9 @@
 LOGS_PATH = "./logs/"
+UPDATE_REPEAT_TASKS_INTERVAL = 600 # in seconds
+BOT_PHOTO_PATH = "./bot/images/bot_photo.jpeg"
+BOT_START_PHOTO_PATH = "./bot/images/bot_photo.jpeg"
+BOT_NAME = "TasksBot"
+BOT_PROFILE_DESCRIPTION = "📋 Простой менеджер задач с папками, повторениями и статистикой. Создан @ksredkin."
+BOT_DESCRIPTION = "👋 Я помогу организовать задачи, создавать папки, ставить дедлайны и отслеживать прогресс. Напиши /start!"
+MAX_LOGIN_ATTEMPTS = 10
+MINUTES_TO_RESET_USER_ATTEMPTS = 1440

@@ -4,3 +4,5 @@ DATABASE_SCRIPT_PATH = "tasks_api/repositories/database.sql"
 JWT_EXPIRATION_TIME = 1440 # 1 day (minutes)
 JWT_ALGORITHM = "HS256"
 LOGS_PATH = "./logs/"
+MAX_ATTEMPTS_TO_LOGIN = 5
+MINUTES_TO_RESET_LOGIN_ATTEMPTS = 1440

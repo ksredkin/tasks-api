@@ -1,15 +1,18 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import Optional
 
+class ApiKeyRequest(BaseModel):
+    api_key: str
+
 class UserBase(BaseModel):
-    login: str
+    login: str = Field(min_length=3, max_length=32, description="Логин от 3 до 32 символов")
 
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(min_length=8, max_length=64, description="Пароль от 8 до 64 символов")
 
 class UserLogin(UserBase):
-    password: str
+    password: str = Field(min_length=8, max_length=64, description="Пароль от 8 до 64 символов")
 
 class UserResponse(UserBase):
     id: int
@@ -19,23 +22,37 @@ class TaskBase(BaseModel):
     name: str
     text: str
     state: Optional[str] = "Active"
+    due_date: Optional[datetime] = None
+    visible_from: Optional[datetime] = None
+    recurrence_type: Optional[str] = None
+    recurrence_day_of_week: Optional[int] = None
+    recurrence_month_day: Optional[int] = None
     folder_id: Optional[int] = None
 
 class TaskCreate(TaskBase):
     pass
 
 class TaskUpdate(BaseModel):
-    name: str = None
+    name: str
     text: str = None
     state: str = None
-    due_date: datetime = None
-    folder_id: int = None
+    due_date: Optional[datetime] = None
+    visible_from: Optional[datetime] = None
+    recurrence_type: Optional[str] = None
+    recurrence_day_of_week: Optional[int] = None
+    recurrence_month_day: Optional[int] = None
+    folder_id: Optional[int] = None
 
 class TaskResponse(TaskBase):
     id: int
-    date: datetime
+    due_date: Optional[datetime] = None
+    visible_from: Optional[datetime] = None
     user_id: int
     folder_id: Optional[int]
+    recurrence_type: Optional[str] = None
+    recurrence_day_of_week: Optional[int] = None
+    recurrence_month_day: Optional[int] = None
+    next_run: Optional[datetime]
     model_config = ConfigDict(from_attributes=True)
 
 class FolderCreate(BaseModel):
