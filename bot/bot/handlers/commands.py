@@ -59,7 +59,7 @@ async def help(message: types.Message):
 async def timer(message: types.Message):
     text = None
 
-    if len(message.text.split()) < 2:
+    if len(message.text.split()) < 3:
         await message.answer(create_timer_error, parse_mode="html")
         return
 
@@ -195,6 +195,7 @@ async def login(message: types.Message, state: FSMContext):
                 if AttemptsStorage().get_attempts(message.from_user.id, message.text.split()[1]) > MAX_LOGIN_ATTEMPTS:
                     await create_reset_user_attempts_timer(message.from_user.id, message.text.split()[1])
                 
+                await message.delete()
                 return
 
             AuthStorage().set_token(message.from_user.id, token)

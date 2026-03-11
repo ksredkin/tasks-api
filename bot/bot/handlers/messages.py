@@ -1,5 +1,5 @@
 from bot.keyboards.inline import get_skip_keyboard, get_cancell_keyboard, get_skip_task_text_keyboard, get_choose_folder_keyboard, get_create_choose_folder_keyboard, get_update_skip_folder_keyboard, get_update_task_choose_folder_keyboard, get_import_choose_folder_keyboard, get_create_skip_due_date_keyboard, get_create_skip_visible_from_keyboard, get_update_skip_due_date_keyboard, get_update_skip_visible_from_keyboard
-from bot.utils.helpers import finish_task_creation, finish_login, finish_register
+from bot.utils.helpers import finish_task_creation, finish_login, finish_register, finish_task_updation
 from bot.messages.auth import no_auth_error, enter_password_message, create_password_message, many_attempts_error
 from bot.messages.tasks import enter_task_text, enter_new_task_text, enter_due_date, enter_due_date_error, enter_visible_from
 from bot.messages.common import incorrect_day_of_week, incorrect_month_day
@@ -228,7 +228,7 @@ async def process_task_update_name(message: types.Message, state: FSMContext):
     await message.answer(enter_new_task_text, reply_markup=get_skip_task_text_keyboard())
 
 @messages_router.message(TaskUpdate.waiting_for_text)
-async def process_task_update_name(message: types.Message, state: FSMContext):
+async def process_task_update_text(message: types.Message, state: FSMContext):
     if not AuthStorage().get_token(message.from_user.id):
         await message.answer(no_auth_error, parse_mode="html")
         return
@@ -268,4 +268,4 @@ async def update_task_process_visible_from(message: types.Message, state: FSMCon
         return
 
     await state.update_data(visible_from=visible_from)
-    await finish_task_creation(message.bot, message.chat.id, message.from_user.id, state)
+    await finish_task_updation(message.bot, message.chat.id, message.from_user.id, state)

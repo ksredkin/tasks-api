@@ -86,7 +86,6 @@ class OrmTaskRepository:
             task.name = name
             task.text = text
             task.state = state
-            task.date = datetime.now(timezone.utc)
             task.folder_id = folder_id
             task.recurrence_type = recurrence_type
             task.recurrence_day_of_week = recurrence_day_of_week

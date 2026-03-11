@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from tasks_api.services.auth_service import AuthService
 from tasks_api.utils.response_factory import ResponseFactory
 from tasks_api.repositories.orm_task_repository import OrmTaskRepository
 from tasks_api.repositories.orm_user_repository import OrmUserRepository
 from tasks_api.models.schemas import TaskCreate, TaskResponse, TaskUpdate, ApiKeyRequest
 from tasks_api.utils.env_config import EnvConfig
+from tasks_api.utils.api_key_banlist import ApiKeyBanlist
 
 tasks_router = APIRouter(prefix="/tasks")
 
@@ -88,12 +89,16 @@ def delete_task(task_id: int, user_id: int = Depends(AuthService(OrmUserReposito
         raise
 
 @tasks_router.post("/repeat", status_code=200)
-def update_repeat_tasks(request: ApiKeyRequest):
+def update_repeat_tasks(request: Request, api_key_request: ApiKeyRequest):
     try:
+        if ApiKeyBanlist().is_in_banlist(request.client.host):
+            raise HTTPException(429, "Too many attempts. You have been blocked.")
+
         config = EnvConfig()
 
-        if not request.api_key == config.get_api_key():
-            raise ResponseFactory.error_response(status.HTTP_400_BAD_REQUEST, "Invalid api_key")
+        if not api_key_request.api_key == config.get_api_key():
+            ApiKeyBanlist().add_ip(request.client.host)
+            raise ResponseFactory.error_response(status.HTTP_400_BAD_REQUEST, "Invalid api_key. You have been blocked.")
 
         OrmTaskRepository.update_repeat_tasks()
 

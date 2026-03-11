@@ -20,7 +20,7 @@ class UserResponse(UserBase):
 
 class TaskBase(BaseModel):
     name: str
-    text: str
+    text: str = None
     state: Optional[str] = "Active"
     due_date: Optional[datetime] = None
     visible_from: Optional[datetime] = None

@@ -73,7 +73,7 @@ async def telegram_bot():
     from bot.utils.auth_storage import AuthStorage
     storage = AuthStorage()
 
-    await configure_bot(bot)
+    #await configure_bot(bot)
     await configure_dp(dp)
     await dp.start_polling(bot)
 

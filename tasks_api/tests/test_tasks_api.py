@@ -110,7 +110,6 @@ class TestTasksAPI(unittest.TestCase):
         response = self.client.get("/tasks/", headers=headers).json()
         
         self.assertEqual(response, [])
-        
         logger.info("Тест на возврат пустого списка при GET запросе на /tasks/ с jwt токеном пройден")
 
     def test_get_task_not_found(self):

@@ -1,6 +1,9 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from datetime import datetime, timezone
+from bot.utils.logger import Logger
+
+logger = Logger(__name__).get_logger()
 
 def get_import_choose_folder_keyboard(folders: list[dict]) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
@@ -127,9 +130,12 @@ def get_tasks_list_keyboard(tasks: list[dict]) -> InlineKeyboardMarkup:
         if task["state"] == "Done":
             continue
 
-        date = datetime.fromisoformat(task.get("due_date"))
-        nice_date = date.strftime("%d.%m.%y")
-        builder.button(text=f"{task.get("name")} (сделать до {nice_date if date > datetime.now(timezone.utc) else "❗️просрочено"})", callback_data=f"task_today_select:{task.get("id")}")
+        if task.get("due_date", None) is not None:
+            date = datetime.fromisoformat(task.get("due_date"))
+            nice_date = date.strftime("%d.%m.%y")
+            builder.button(text=f"{task.get("name")} ({"сделать до " + nice_date if date > datetime.now(timezone.utc) else "❗️просрочено"})", callback_data=f"task_today_select:{task.get("id")}")
+        else:
+            builder.button(text=f"{task.get("name")} (не огр. по времени)", callback_data=f"task_today_select:{task.get("id")}")
 
     builder.adjust(1, repeat=True)
 

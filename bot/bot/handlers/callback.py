@@ -139,10 +139,8 @@ async def select_task(callback: CallbackQuery):
     task_id = int(callback.data.split(":")[1])
     task = await APIClient.get_user_task_by_id(AuthStorage().get_token(callback.from_user.id), task_id)
     
-    due_date = datetime.fromisoformat(task.get("due_date"))
-    nice_date = due_date.strftime("%d.%m.%y")
-
-    message = selected_task_message.replace("{task_name}", html.escape(task.get("name"))).replace("{task_text}", html.escape((task.get("text")))).replace("{task_state}", task.get("state")).replace("{task_due_date}", nice_date)
+    due_date = datetime.fromisoformat(task.get("due_date")).strftime("%d.%m.%y") if task.get("due_date") is not None else "Не задано."
+    message = selected_task_message.replace("{task_name}", html.escape(task.get("name"))).replace("{task_text}", html.escape((task.get("text")))).replace("{task_state}", task.get("state")).replace("{task_due_date}", due_date)
     await callback.message.edit_text(message, parse_mode="html", reply_markup=get_today_task_actions_keyboard(task.get("id")))
 
 @callback_router.callback_query(F.data.startswith("task_select:"))
@@ -168,10 +166,8 @@ async def select_done_task(callback: CallbackQuery):
     task_id = int(callback.data.split(":")[1])
     task = await APIClient.get_user_task_by_id(AuthStorage().get_token(callback.from_user.id), task_id)
     
-    date = datetime.fromisoformat(task.get("date"))
-    nice_date = date.strftime("%d.%m.%y")
-
-    message = selected_task_message.replace("{task_name}", task.get("name")).replace("{task_text}", html.escape(task.get("text"))).replace("{task_state}", task.get("state")).replace("{task_date}", nice_date)
+    nice_date = datetime.fromisoformat(task.get("due_date")).strftime("%d.%m.%y") if task.get("due_date", None) is not None else "Не задано."
+    message = selected_task_message.replace("{task_name}", task.get("name")).replace("{task_text}", html.escape(task.get("text"))).replace("{task_state}", task.get("state")).replace("{task_due_date}", nice_date)
     await callback.message.edit_text(message, parse_mode="html", reply_markup=get_doned_task_actions_keyboard(task.get("id")))
 
 @callback_router.callback_query(F.data.startswith("folder_select:"))
@@ -223,7 +219,7 @@ async def task_done(callback: CallbackQuery):
     task_id = int(callback.data.split(":")[1])
     
     task = await APIClient.get_user_task_by_id(AuthStorage().get_token(callback.from_user.id), task_id)
-    await APIClient.update_task(AuthStorage().get_token(callback.from_user.id), task_id, task_name=task["name"], task_text=task["text"], task_state="Done", repeat_interval=task["repeat_interval"])
+    await APIClient.update_task(AuthStorage().get_token(callback.from_user.id), task_id, task_name=task["name"], task_text=task.get("text"), task_state="Done", due_date=task.get("repeat_interval"), visible_from=datetime.fromisoformat(task.get("visible_from")) if task.get("visible_from") is not None else None, folder_id=task.get("folder_id"), recurrence_type=task.get("recurrence_type"), recurrence_day_of_week=task.get("recurrence_day_of_week"), recurrence_month_day=task.get("recurrence_month_day"))
     await callback.message.edit_text(successful_mark_a_task_as_completed_message.replace("{task_name}", task["name"]), parse_mode="html")
 
 @callback_router.callback_query(F.data == "skip_task_text")
@@ -328,9 +324,13 @@ async def update_task_process_recurrence_type(callback: CallbackQuery, state: FS
         return
     
     recurrence_type = callback.data.split(":")[1] if callback.data.split(":")[1] != "None" else None
+    await state.update_data(recurrence_type=recurrence_type)
 
     match recurrence_type:
         case "daily":
+            await state.set_state(TaskUpdate.waiting_for_due_date)
+            await callback.message.edit_text(enter_due_date, reply_markup=get_update_skip_due_date_keyboard())
+        case "skip":
             await state.set_state(TaskUpdate.waiting_for_due_date)
             await callback.message.edit_text(enter_due_date, reply_markup=get_update_skip_due_date_keyboard())
         case None:

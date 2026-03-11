@@ -30,7 +30,7 @@ class TestAlembicMigrations(unittest.TestCase):
             cursor.close()
             conn.close()
         except Exception as e:
-            cls.logger.critical("="*1000 + f"Не удалось создать базу данных при тесте миграций: {e}")
+            cls.logger.critical(f"Не удалось создать базу данных при тесте миграций: {e}")
 
     @classmethod
     def tearDownClass(cls):

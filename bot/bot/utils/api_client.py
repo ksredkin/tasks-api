@@ -89,7 +89,7 @@ class APIClient:
         elif due_date == None:
             json["due_date"] = None
         else:
-            json["due_date"] = due_date
+            json["due_date"] = due_date.isoformat()
 
         if visible_from == -1:
             json["visible_from"] = current_task.get("visible_from")
@@ -101,8 +101,6 @@ class APIClient:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.put(url=url, headers=headers, json=json)
-                logger.info(response.json())
-                logger.info(response.status_code)
                 return response.json()
         
         except Exception as e:
