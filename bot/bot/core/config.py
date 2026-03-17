@@ -1,4 +1,5 @@
 LOGS_PATH = "./logs/"
+TEMP_FILES_PATH = "./bot/temp_files/"
 UPDATE_REPEAT_TASKS_INTERVAL = 600 # in seconds
 BOT_PHOTO_PATH = "./bot/images/bot_photo.jpeg"
 BOT_START_PHOTO_PATH = "./bot/images/bot_photo.jpeg"

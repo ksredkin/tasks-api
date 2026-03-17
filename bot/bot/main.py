@@ -7,7 +7,7 @@ from bot.utils.env_config import EnvConfig
 from bot.utils.logger import Logger
 import asyncio
 from bot.services.update_tasks_service import update_tasks_service
-from bot.core.config import BOT_PHOTO_PATH, BOT_NAME, BOT_DESCRIPTION, BOT_PROFILE_DESCRIPTION
+from bot.core.config import BOT_PHOTO_PATH, BOT_NAME, BOT_DESCRIPTION, BOT_PROFILE_DESCRIPTION, TEMP_FILES_PATH
 
 logger = Logger(__name__).get_logger()
 
@@ -72,6 +72,9 @@ async def telegram_bot():
 
     from bot.utils.auth_storage import AuthStorage
     storage = AuthStorage()
+
+    from bot.utils.temp_files_manager import TempFilesManager
+    magaer = TempFilesManager().configure(TEMP_FILES_PATH)
 
     #await configure_bot(bot)
     await configure_dp(dp)

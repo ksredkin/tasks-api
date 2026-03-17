@@ -1,4 +1,4 @@
-from bot.keyboards.inline import get_skip_keyboard, get_cancell_keyboard, get_skip_task_text_keyboard, get_choose_folder_keyboard, get_create_choose_folder_keyboard, get_update_skip_folder_keyboard, get_update_task_choose_folder_keyboard, get_import_choose_folder_keyboard, get_create_skip_due_date_keyboard, get_create_skip_visible_from_keyboard, get_update_skip_due_date_keyboard, get_update_skip_visible_from_keyboard
+from bot.keyboards.inline import get_skip_keyboard, get_cancell_keyboard, get_skip_task_text_keyboard, get_choose_folder_keyboard, get_create_choose_folder_keyboard, get_update_skip_folder_keyboard, get_update_task_choose_folder_keyboard, get_import_choose_folder_keyboard, get_create_skip_due_date_keyboard, get_create_skip_visible_from_keyboard, get_update_skip_due_date_keyboard, get_update_skip_visible_from_keyboard, create_inline_keyboard
 from bot.utils.helpers import finish_task_creation, finish_login, finish_register, finish_task_updation
 from bot.messages.auth import no_auth_error, enter_password_message, create_password_message, many_attempts_error
 from bot.messages.tasks import enter_task_text, enter_new_task_text, enter_due_date, enter_due_date_error, enter_visible_from
@@ -16,6 +16,8 @@ from datetime import datetime, timezone
 import calendar
 from bot.utils.attempts_storage import AttemptsStorage
 from bot.core.config import MAX_LOGIN_ATTEMPTS
+from bot.states.data_states import DataImport
+from aiogram import F
 
 messages_router = Router()
 
@@ -269,3 +271,17 @@ async def update_task_process_visible_from(message: types.Message, state: FSMCon
 
     await state.update_data(visible_from=visible_from)
     await finish_task_updation(message.bot, message.chat.id, message.from_user.id, state)
+
+@messages_router.message(DataImport.waiting_for_data, F.document)
+async def import_data(message: types.Message, state: FSMContext):
+    if not AuthStorage().get_token(message.from_user.id):
+        await message.answer(no_auth_error, parse_mode="html")
+        return
+    
+    buttons = {"❌ Удалить и заменить импортом": "import_data_choose_type:delete",
+               "": ""
+    }
+
+    await state.update_data(data=message.document)
+    await state.set_state(DataImport.waiting_for_import_type)
+    await message.answer("🧭 Что делать с уже существующими у вас задачами и папками?", reply_markup=create_inline_keyboard(buttons))

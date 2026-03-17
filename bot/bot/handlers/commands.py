@@ -17,6 +17,9 @@ from bot.utils.photo_cache import set_photo_id, get_photo_id
 from bot.utils.helpers import create_timer
 from bot.utils.attempts_storage import AttemptsStorage
 from bot.utils.helpers import create_reset_user_attempts_timer
+from bot.utils.temp_files_manager import TempFilesManager
+from datetime import datetime, timezone
+from bot.states.data_states import DataImport
 
 logger = Logger(__name__).get_logger()
 commands_router = Router()
@@ -57,8 +60,6 @@ async def help(message: types.Message):
 
 @commands_router.message(filters.Command("timer"))
 async def timer(message: types.Message):
-    text = None
-
     if len(message.text.split()) < 3:
         await message.answer(create_timer_error, parse_mode="html")
         return
@@ -69,11 +70,36 @@ async def timer(message: types.Message):
         await message.answer(create_timer_error, parse_mode="html")
         return
 
-    if len(message.text.split()) >= 3:
-        text = " ".join(message.text.split()[2:])
+    text = " ".join(message.text.split()[2:])
         
     bot_message = await message.answer(create_timer_message.replace("{name}", text).replace("{minutes}", str(minutes*60//60)), parse_mode="html")
     await create_timer(minutes, message.chat.id, message.bot, text=text, message=bot_message)
+
+@commands_router.message(filters.Command("export_data"))
+async def export_data(message: types.Message):
+    if not AuthStorage().get_token(message.from_user.id):
+        await message.answer(no_auth_error, parse_mode="html")
+        return
+
+    tasks = await APIClient.get_user_tasks(AuthStorage().get_token(message.from_user.id))
+    folders = await APIClient.get_user_folders(AuthStorage().get_token(message.from_user.id))
+
+    data_to_export = {"tasks": tasks if tasks else [], "folders": folders if folders else []}
+    
+    temp_file_manager = TempFilesManager()
+    temp_file_path = temp_file_manager.create(str(data_to_export), "exported_data_{time}_{username}.json", time=datetime.now(timezone.utc).strftime("%d-%m-%y_%H-%M"), username=str(message.from_user.username))
+
+    await message.answer_document(types.FSInputFile(temp_file_path), caption="✅ Все данные успешно экспортированы.")
+    temp_file_manager.delete(temp_file_path)
+
+@commands_router.message(filters.Command("import_data"))
+async def import_data(message: types.Message, state: FSMContext):
+    if not AuthStorage().get_token(message.from_user.id):
+        await message.answer(no_auth_error, parse_mode="html")
+        return
+
+    await state.set_state(DataImport.waiting_for_data)
+    await message.answer("🗃️ Отправьте файл для импортирования данных.", reply_markup=get_cancell_keyboard())
 
 @commands_router.message(filters.Command("tasks"))
 async def tasks(message: types.Message):

@@ -13,6 +13,8 @@ logs/
 # C extensions
 *.so
 
+temp_files/
+
 # Distribution / packaging
 .Python
 build/

@@ -309,3 +309,11 @@ def get_update_task_choose_folder_keyboard(folders: list[dict]|None) -> InlineKe
     builder.adjust(1, repeat=True)
 
     return builder.as_markup()
+
+def create_inline_keyboard(buttons: dict[str, str], adjust: list = [1], repeat: bool = True) -> InlineKeyboardMarkup:
+    """Принимает словарь text:callback, создает и возвращает на его основе inline клавиатуру"""
+    builder = InlineKeyboardBuilder()
+    for text, callback in buttons:
+        builder.button(text=text, callback_data=callback)
+    builder.adjust(**adjust, repeat=repeat)
+    return builder.as_markup()
