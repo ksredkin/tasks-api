@@ -92,6 +92,7 @@ async def export_data(message: types.Message):
     await message.answer_document(types.FSInputFile(temp_file_path), caption="✅ Все данные успешно экспортированы.")
     temp_file_manager.delete(temp_file_path)
 
+'''
 @commands_router.message(filters.Command("import_data"))
 async def import_data(message: types.Message, state: FSMContext):
     if not AuthStorage().get_token(message.from_user.id):
@@ -100,6 +101,7 @@ async def import_data(message: types.Message, state: FSMContext):
 
     await state.set_state(DataImport.waiting_for_data)
     await message.answer("🗃️ Отправьте файл для импортирования данных.", reply_markup=get_cancell_keyboard())
+'''
 
 @commands_router.message(filters.Command("tasks"))
 async def tasks(message: types.Message):

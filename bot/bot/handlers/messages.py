@@ -278,10 +278,11 @@ async def import_data(message: types.Message, state: FSMContext):
         await message.answer(no_auth_error, parse_mode="html")
         return
     
-    buttons = {"❌ Удалить и заменить импортом": "import_data_choose_type:delete",
-               "": ""
+    buttons = {"🗑️ Заменить всё (старые данные будут удалены)": "import_data_choose_type:delete",
+               "➕ Добавить к существующим (дубликаты)": "import_data_choose_type:create",
+               "🔄 Обновить только новые (без дубликатов)": "import_data_choose_type:update"
     }
 
-    await state.update_data(data=message.document)
+    await state.update_data(file=message.document)
     await state.set_state(DataImport.waiting_for_import_type)
-    await message.answer("🧭 Что делать с уже существующими у вас задачами и папками?", reply_markup=create_inline_keyboard(buttons))
+    await message.answer("🧭 Как обработать существующие задачи и папки?", reply_markup=create_inline_keyboard(buttons))

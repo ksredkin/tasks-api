@@ -2,6 +2,7 @@ from bot.utils.env_config import EnvConfig
 from bot.utils.logger import Logger
 import httpx
 from datetime import datetime
+from aiogram.types import FSInputFile
 
 logger = Logger(__name__).get_logger()
 
@@ -22,6 +23,21 @@ class APIClient:
         except Exception as e:
             logger.info(f"Ошибка при получении задач от API: {e}")
             return None
+        
+    @staticmethod
+    async def import_data(user_token: str, file: FSInputFile, import_type: str) -> bool:
+        config = EnvConfig()
+        headers = {"Authorization": f"Bearer {user_token}"}
+        url = f"http://{config.get_api_host()}:{config.get_api_port()}/tasks/import"
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, headers=headers, json=json)
+                if response.status_code != 200:
+                    return False
+                return True
+
+        except Exception as e:
+            logger.warning(f"Произошла ошибка при попытке импортировать данные: {e}")
         
     @staticmethod
     async def get_user_tasks_today(user_token: str) -> list[dict] | None:

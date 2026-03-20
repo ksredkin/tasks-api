@@ -50,6 +50,20 @@ async def finish_task_import(bot: Bot, state: FSMContext, chat_id: int, user_id:
     message = successful_import_tasks.replace("{tasks}", len(tasks))
     await bot.send_message(chat_id, message, parse_mode="html")
 
+async def finish_import_data(bot: Bot, state: FSMContext, chat_id: int, user_id: int):
+    data = await state.get_data()
+    file: types.FSInputFile = data.get("file")
+    import_type = data.get("import_type")
+
+    token = AuthStorage().get_token(user_id)
+    #await APIClient.import_data(token, file, import_type)
+    with open(file.path, "r") as f:
+        data = f.read()
+    logger.info(str(data))
+
+    await state.clear()
+    await bot.send_message(chat_id, "✅ Данные успешно импортированы!", parse_mode="html")
+
 async def finish_creating_folder(bot: Bot, chat_id: int, telegram_id, state: FSMContext):
     data = await state.get_data()
     await state.clear()

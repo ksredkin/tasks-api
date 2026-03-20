@@ -50,6 +50,8 @@ class EnvConfig:
             'DB_PASSWORD'
         ]
         
+        for var in required_vars:
+            print(str(var), str(os.getenv(var)))
         missing = [var for var in required_vars if not os.getenv(var)]
         if missing:
             raise ValueError(f"Отсутствуют переменные окружения: {missing}")
