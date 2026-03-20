@@ -11,6 +11,7 @@ class TestAlembicMigrations(unittest.TestCase):
         cls.logger = Logger(__name__).get_logger()
 
         EnvConfig._instance = None
+        cls.old_db_name = os.getenv("DB_NAME")
         os.environ["DB_NAME"] = "test_migrations_db"
         config = EnvConfig()
 
@@ -53,7 +54,7 @@ class TestAlembicMigrations(unittest.TestCase):
 
         EnvConfig._instance = None
 
-        del os.environ["DB_NAME"]
+        os.environ["DB_NAME"] = cls.old_db_name
 
     def test_alembic_migrations(self):
         result = subprocess.run(

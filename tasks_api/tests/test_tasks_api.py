@@ -46,6 +46,7 @@ class TestTasksAPI(unittest.TestCase):
         from tasks_api.database.connection import db
         db.reset()
 
+        cls.old_db_name = os.getenv("DB_NAME")
         os.environ["DB_NAME"] = cls.test_db_name
         config = EnvConfig()
 
@@ -91,7 +92,7 @@ class TestTasksAPI(unittest.TestCase):
         conn.close()
 
         import os
-        del os.environ["DB_NAME"]
+        os.environ["DB_NAME"] = cls.old_db_name
 
         from tasks_api.utils.env_config import EnvConfig
         from tasks_api.utils.jwt import JWTManager

@@ -13,8 +13,6 @@ class EnvConfig:
         return cls._instance
     
     def load_config(self):
-        load_dotenv()
-
         self.secret_key = os.getenv("SECRET_KEY")
         self.database_script_path = os.getenv("DATABASE_SCRIPT_PATH", DATABASE_SCRIPT_PATH)
 
@@ -50,8 +48,6 @@ class EnvConfig:
             'DB_PASSWORD'
         ]
         
-        for var in required_vars:
-            print(str(var), str(os.getenv(var)))
         missing = [var for var in required_vars if not os.getenv(var)]
         if missing:
             raise ValueError(f"Отсутствуют переменные окружения: {missing}")

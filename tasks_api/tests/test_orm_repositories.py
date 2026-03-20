@@ -10,6 +10,7 @@ class TestOrmRepositories(unittest.TestCase):
         EnvConfig._instance = None
 
         import os
+        cls.old_db_name = os.getenv("DB_NAME")
         os.environ["DB_NAME"] = "test_orm_repositories_db"
 
         config = EnvConfig()
@@ -52,7 +53,7 @@ class TestOrmRepositories(unittest.TestCase):
         EnvConfig._instance = None
 
         import os
-        del os.environ["DB_NAME"]
+        os.environ["DB_NAME"] = cls.old_db_name
 
         db.reconnect()
 

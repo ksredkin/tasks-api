@@ -49,3 +49,6 @@ class EnvConfig():
     
     def get_api_key(self) -> str:
         return os.getenv("API_KEY")
+    
+    def get_proxy_address(self) -> str:
+        return os.getenv("PROXY")

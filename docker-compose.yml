@@ -28,7 +28,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       SECRET_KEY: ${SECRET_KEY}
     ports:
-      - "8000:8000"
+      - "8080:8000"
     volumes:
       - ./tasks_api:/app
     networks:
@@ -42,10 +42,24 @@ services:
     depends_on:
       - api
     environment:
-      - API_PORT=${API_PORT}
-      - API_HOST=api
+      API_PORT: ${API_PORT}
+      API_HOST: api
+      PROXY: ${PROXY}
     volumes:
       - ./bot:/app
+    networks:
+      - tasks-net
+    
+  web-frontend:
+    build: ./web-frontend
+    container_name: tasks-web-frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8000:5173"
+    volumes:
+      - ./web-frontend:/app
     networks:
       - tasks-net
 

@@ -8,6 +8,7 @@ from bot.utils.logger import Logger
 import asyncio
 from bot.services.update_tasks_service import update_tasks_service
 from bot.core.config import BOT_PHOTO_PATH, BOT_NAME, BOT_DESCRIPTION, BOT_PROFILE_DESCRIPTION, TEMP_FILES_PATH
+from aiogram.client.session.aiohttp import AiohttpSession
 
 logger = Logger(__name__).get_logger()
 
@@ -67,7 +68,12 @@ async def configure_dp(dp: Dispatcher):
 
 async def telegram_bot():
     config = EnvConfig()
-    bot = Bot(config.get_token())
+    if proxy_address := config.get_proxy_address():
+        session = AiohttpSession(proxy=proxy_address)
+        bot = Bot(config.get_token(), session=session)
+    else:
+        bot = Bot(config.get_token())
+
     dp = Dispatcher()
 
     from bot.utils.auth_storage import AuthStorage
