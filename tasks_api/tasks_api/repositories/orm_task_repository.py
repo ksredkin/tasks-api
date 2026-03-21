@@ -24,6 +24,61 @@ class OrmTaskRepository:
             session.close()
 
     @staticmethod
+    def import_tasks(user_id: int, tasks: list[Task], import_type: str) -> bool:
+        session = db.get_session()
+        try:
+            user = session.get(User, user_id)
+            if not user:
+                return False
+            
+            if any(task.id is None for task in tasks):
+                return False
+
+            match import_type:
+                case "delete":
+                    for task in user.tasks:
+                        session.delete(task)
+
+                    for task_data in tasks:
+                        new_task = Task(user_id=user_id, name=task_data.name, text=task_data.text, state=task_data.state, folder_id=task_data.folder_id, recurrence_type=task_data.recurrence_type, recurrence_day_of_week=task_data.recurrence_day_of_week, recurrence_month_day=task_data.recurrence_month_day, next_run=task_data.next_run, due_date=task_data.due_date, visible_from=task_data.visible_from)
+                        session.add(new_task)
+
+                case "create":
+                    for task_data in tasks:
+                        new_task = Task(user_id=user_id, name=task_data.name, text=task_data.text, state=task_data.state, folder_id=task_data.folder_id, recurrence_type=task_data.recurrence_type, recurrence_day_of_week=task_data.recurrence_day_of_week, recurrence_month_day=task_data.recurrence_month_day, next_run=task_data.next_run, due_date=task_data.due_date, visible_from=task_data.visible_from)
+                        session.add(new_task)
+
+                case "update":
+                    existing_tasks = {t.id: t for t in user.tasks}
+                    for task_data in tasks:
+                        if task_data.id in existing_tasks:
+                            existing = existing_tasks[task_data.id]
+                            existing.text = task_data.text
+                            existing.state = task_data.state
+                            existing.folder_id = task_data.folder_id
+                            existing.recurrence_type = task_data.recurrence_type
+                            existing.recurrence_day_of_week = task_data.recurrence_day_of_week
+                            existing.recurrence_month_day = task_data.recurrence_month_day
+                            existing.next_run = task_data.next_run
+                            existing.due_date = task_data.due_date
+                            existing.visible_from = task_data.visible_from
+                        else:
+                            new_task = Task(user_id=user_id, name=task_data.name, text=task_data.text, state=task_data.state, folder_id=task_data.folder_id, recurrence_type=task_data.recurrence_type, recurrence_day_of_week=task_data.recurrence_day_of_week, recurrence_month_day=task_data.recurrence_month_day, next_run=task_data.next_run, due_date=task_data.due_date, visible_from=task_data.visible_from)
+                            session.add(new_task)
+                            
+                case _:
+                    return False
+
+            session.commit()
+            return True
+        except Exception as e:
+            session.rollback()
+            logger.warning(f"Ошибка импорта задач: {e}")
+            return False
+        finally:
+            session.close()
+
+    @staticmethod
     def get_user_tasks(user_id: int) -> list[Task] | None:
         session = db.get_session()
         try:

@@ -283,6 +283,7 @@ async def import_data(message: types.Message, state: FSMContext):
                "🔄 Обновить только новые (без дубликатов)": "import_data_choose_type:update"
     }
 
-    await state.update_data(file=message.document)
+    file = await message.bot.download(message.document)
+    await state.update_data(file=file)
     await state.set_state(DataImport.waiting_for_import_type)
     await message.answer("🧭 Как обработать существующие задачи и папки?", reply_markup=create_inline_keyboard(buttons))

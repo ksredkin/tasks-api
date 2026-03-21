@@ -6,6 +6,7 @@ from tasks_api.repositories.orm_user_repository import OrmUserRepository
 from tasks_api.models.schemas import TaskCreate, TaskResponse, TaskUpdate, ApiKeyRequest
 from tasks_api.utils.env_config import EnvConfig
 from tasks_api.utils.api_key_banlist import ApiKeyBanlist
+from tasks_api.models.schemas import TaskResponse
 
 tasks_router = APIRouter(prefix="/tasks")
 
@@ -58,6 +59,19 @@ def create_task(task: TaskCreate, user_id: int = Depends(AuthService(OrmUserRepo
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to create task")
         
         return task
+    
+    except HTTPException:
+        raise
+
+@tasks_router.post("/import", status_code=200, response_model=TaskResponse)
+def import_tasks(tasks: list[TaskResponse], import_type: str, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
+    try:
+        is_success = OrmTaskRepository.import_tasks(user_id, tasks, import_type)
+        
+        if not is_success:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to import tasks")
+        
+        return ResponseFactory.success_response(200, "Success")
     
     except HTTPException:
         raise

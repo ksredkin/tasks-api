@@ -136,3 +136,58 @@ class OrmFolderRepository:
             return None
         finally:
             session.close()
+
+    @staticmethod
+    def import_folders(user_id: int, folders: list[Folder], import_type: str) -> bool:
+        session = db.get_session()
+        try:
+            user = session.get(User, user_id)
+            if not user:
+                return False
+            
+            if any(folder.id is None for folder in folders):
+                return False
+
+            match import_type:
+                case "delete":
+                    for folder in user.folders:
+                        session.delete(folder)
+
+                    for folder_data in folders:
+                        new_folder = Folder(user_id=user_id, name=folder_data.name, text=folder_data.text, state=folder_data.state, folder_id=folder_data.folder_id, recurrence_type=folder_data.recurrence_type, recurrence_day_of_week=folder_data.recurrence_day_of_week, recurrence_month_day=folder_data.recurrence_month_day, next_run=folder_data.next_run, due_date=folder_data.due_date, visible_from=folder_data.visible_from)
+                        session.add(new_folder)
+
+                case "create":
+                    for folder_data in folders:
+                        new_folder = Folder(user_id=user_id, name=folder_data.name, text=folder_data.text, state=folder_data.state, folder_id=folder_data.folder_id, recurrence_type=folder_data.recurrence_type, recurrence_day_of_week=folder_data.recurrence_day_of_week, recurrence_month_day=folder_data.recurrence_month_day, next_run=folder_data.next_run, due_date=folder_data.due_date, visible_from=folder_data.visible_from)
+                        session.add(new_folder)
+
+                case "update":
+                    existing_folders = {t.id: t for t in user.folders}
+                    for folder_data in folders:
+                        if folder_data.id in existing_folders:
+                            existing = existing_folders[folder_data.id]
+                            existing.text = folder_data.text
+                            existing.state = folder_data.state
+                            existing.folder_id = folder_data.folder_id
+                            existing.recurrence_type = folder_data.recurrence_type
+                            existing.recurrence_day_of_week = folder_data.recurrence_day_of_week
+                            existing.recurrence_month_day = folder_data.recurrence_month_day
+                            existing.next_run = folder_data.next_run
+                            existing.due_date = folder_data.due_date
+                            existing.visible_from = folder_data.visible_from
+                        else:
+                            new_folder = Folder(user_id=user_id, name=folder_data.name, text=folder_data.text, state=folder_data.state, folder_id=folder_data.folder_id, recurrence_type=folder_data.recurrence_type, recurrence_day_of_week=folder_data.recurrence_day_of_week, recurrence_month_day=folder_data.recurrence_month_day, next_run=folder_data.next_run, due_date=folder_data.due_date, visible_from=folder_data.visible_from)
+                            session.add(new_folder)
+
+                case _:
+                    return False
+
+            session.commit()
+            return True
+        except Exception as e:
+            session.rollback()
+            logger.warning(f"Ошибка импорта папок: {e}")
+            return False
+        finally:
+            session.close()

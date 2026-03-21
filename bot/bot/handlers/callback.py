@@ -316,6 +316,7 @@ async def update_folder_show_progress(callback: CallbackQuery, state: FSMContext
     show_progress = callback.data.split(":")[1] == "True"
     await state.update_data(show_progress=show_progress)
     await finish_folder_updation(callback.bot, callback.message.chat.id, callback.from_user.id, state)
+    await callback.message.delete()
 
 @callback_router.callback_query(F.data.startswith("update_task_recurrence_type:"))
 async def update_task_process_recurrence_type(callback: CallbackQuery, state: FSMContext):

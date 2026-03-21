@@ -2,7 +2,7 @@ from bot.utils.env_config import EnvConfig
 from bot.utils.logger import Logger
 import httpx
 from datetime import datetime
-from aiogram.types import FSInputFile
+from json import loads
 
 logger = Logger(__name__).get_logger()
 
@@ -25,19 +25,34 @@ class APIClient:
             return None
         
     @staticmethod
-    async def import_data(user_token: str, file: FSInputFile, import_type: str) -> bool:
+    async def import_tasks(user_token: str, tasks: dict, import_type: str) -> bool:
         config = EnvConfig()
         headers = {"Authorization": f"Bearer {user_token}"}
-        url = f"http://{config.get_api_host()}:{config.get_api_port()}/tasks/import"
+        url = f"http://{config.get_api_host()}:{config.get_api_port()}/tasks/import?import_type={import_type}"
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.post(url, headers=headers, json=json)
+                response = await client.post(url, headers=headers, json=tasks)
                 if response.status_code != 200:
                     return False
                 return True
 
         except Exception as e:
-            logger.warning(f"Произошла ошибка при попытке импортировать данные: {e}")
+            logger.warning(f"Произошла ошибка при попытке импортировать задачи: {e}")
+
+    @staticmethod
+    async def import_folders(user_token: str, folders: dict, import_type: str) -> bool:
+        config = EnvConfig()
+        headers = {"Authorization": f"Bearer {user_token}"}
+        url = f"http://{config.get_api_host()}:{config.get_api_port()}/folders/import?import_type={import_type}"
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, headers=headers, json=folders)
+                if response.status_code != 200:
+                    return False
+                return True
+
+        except Exception as e:
+            logger.warning(f"Произошла ошибка при попытке импортировать папки: {e}")
         
     @staticmethod
     async def get_user_tasks_today(user_token: str) -> list[dict] | None:

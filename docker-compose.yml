@@ -27,8 +27,9 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       SECRET_KEY: ${SECRET_KEY}
+      API_KEY: ${API_KEY}
     ports:
-      - "8080:8000"
+      - "8080:8080"
     volumes:
       - ./tasks_api:/app
     networks:
@@ -44,7 +45,9 @@ services:
     environment:
       API_PORT: ${API_PORT}
       API_HOST: api
+      API_KEY: ${API_KEY}
       PROXY: ${PROXY}
+      TOKEN: ${TOKEN}
     volumes:
       - ./bot:/app
     networks:

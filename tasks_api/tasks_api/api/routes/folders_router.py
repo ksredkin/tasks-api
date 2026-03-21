@@ -113,3 +113,16 @@ def delete_folder(folder_id: int, user_id: int = Depends(AuthService(OrmUserRepo
 
     except Exception:
         raise
+
+@folders_router.post("/import", status_code=200, response_model=FolderResponse)
+def import_folders(folders: list[FolderResponse], import_type: str, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
+    try:
+        is_success = OrmFolderRepository.import_folders(user_id, folders, import_type)
+        
+        if not is_success:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to import tasks")
+        
+        return ResponseFactory.success_response(200, "Success")
+    
+    except HTTPException:
+        raise

@@ -12,16 +12,16 @@ class EnvConfig():
         return cls._instance
     
     def load_config(self):
-        load_dotenv()
-
         self.token = os.getenv("TOKEN")
         self.api_host = os.getenv("API_HOST")
-        self.api_port = os.getenv("API_PORT", 8000)
+        self.api_port = os.getenv("API_PORT")
 
         if not self.token:
             raise ValueError("TOKEN бота не установлен в .env файле")
         if not self.api_host:
             raise ValueError("API_HOST не установлен в .env файле")
+        if not self.api_port:
+            raise ValueError("API_PORT не установлен в .env файле")
 
     def get_token(self) -> str:
         return self.token

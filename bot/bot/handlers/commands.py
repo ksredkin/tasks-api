@@ -20,6 +20,7 @@ from bot.utils.helpers import create_reset_user_attempts_timer
 from bot.utils.temp_files_manager import TempFilesManager
 from datetime import datetime, timezone
 from bot.states.data_states import DataImport
+from json import dumps
 
 logger = Logger(__name__).get_logger()
 commands_router = Router()
@@ -74,6 +75,7 @@ async def timer(message: types.Message):
         
     bot_message = await message.answer(create_timer_message.replace("{name}", text).replace("{minutes}", str(minutes*60//60)), parse_mode="html")
     await create_timer(minutes, message.chat.id, message.bot, text=text, message=bot_message)
+    logger.info(f"Пользователь @{message.from_user.username} (id: {message.from_user.id}) вызвал команду /timer")
 
 @commands_router.message(filters.Command("export_data"))
 async def export_data(message: types.Message):
@@ -87,12 +89,12 @@ async def export_data(message: types.Message):
     data_to_export = {"tasks": tasks if tasks else [], "folders": folders if folders else []}
     
     temp_file_manager = TempFilesManager()
-    temp_file_path = temp_file_manager.create(str(data_to_export), "exported_data_{time}_{username}.json", time=datetime.now(timezone.utc).strftime("%d-%m-%y_%H-%M"), username=str(message.from_user.username))
+    temp_file_path = temp_file_manager.create(dumps(data_to_export), "exported_data_{time}_{username}.json", time=datetime.now(timezone.utc).strftime("%d-%m-%y_%H-%M"), username=str(message.from_user.username))
 
     await message.answer_document(types.FSInputFile(temp_file_path), caption="✅ Все данные успешно экспортированы.")
     temp_file_manager.delete(temp_file_path)
+    logger.info(f"Пользователь @{message.from_user.username} (id: {message.from_user.id}) вызвал команду /export_data")
 
-'''
 @commands_router.message(filters.Command("import_data"))
 async def import_data(message: types.Message, state: FSMContext):
     if not AuthStorage().get_token(message.from_user.id):
@@ -101,7 +103,7 @@ async def import_data(message: types.Message, state: FSMContext):
 
     await state.set_state(DataImport.waiting_for_data)
     await message.answer("🗃️ Отправьте файл для импортирования данных.", reply_markup=get_cancell_keyboard())
-'''
+    logger.info(f"Пользователь @{message.from_user.username} (id: {message.from_user.id}) вызвал команду /import_data")
 
 @commands_router.message(filters.Command("tasks"))
 async def tasks(message: types.Message):

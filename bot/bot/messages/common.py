@@ -26,6 +26,8 @@ help_message = """📋 <b>Доступные команды:</b>
 /delete_folder - 🚫 Удалить папку
 /timer {minutes} {message} - ⏳️ Создать таймер 
 /stats - 📊 Статистика за все время
+/export_data - 💾 Экспорт данных
+/import_data - 📥 Импорт данных
 /help - ❓️ Справка по командам
 """
 

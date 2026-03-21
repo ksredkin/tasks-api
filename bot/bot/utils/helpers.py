@@ -13,6 +13,7 @@ from bot.utils.attempts_storage import AttemptsStorage
 from bot.core.config import MINUTES_TO_RESET_USER_ATTEMPTS, MAX_LOGIN_ATTEMPTS
 from bot.utils.attempts_storage import AttemptsStorage
 from datetime import datetime
+from json import loads
 
 logger = Logger(__name__).get_logger()
 
@@ -52,17 +53,19 @@ async def finish_task_import(bot: Bot, state: FSMContext, chat_id: int, user_id:
 
 async def finish_import_data(bot: Bot, state: FSMContext, chat_id: int, user_id: int):
     data = await state.get_data()
-    file: types.FSInputFile = data.get("file")
+    file = data.get("file").read().decode("utf-8")
     import_type = data.get("import_type")
 
     token = AuthStorage().get_token(user_id)
-    #await APIClient.import_data(token, file, import_type)
-    with open(file.path, "r") as f:
-        data = f.read()
-    logger.info(str(data))
+    tasks_is_success = await APIClient.import_tasks(token, loads(file).get("tasks"), import_type)
+    folders_is_success = await APIClient.import_folders(token, loads(file).get("folders"), import_type)
 
     await state.clear()
-    await bot.send_message(chat_id, "✅ Данные успешно импортированы!", parse_mode="html")
+
+    if tasks_is_success and folders_is_success:
+        await bot.send_message(chat_id, "✅ Данные успешно импортированы!", parse_mode="html")
+    else:
+        await bot.send_message(chat_id, "❌ Не удалось импортировать данные.", parse_mode="html")
 
 async def finish_creating_folder(bot: Bot, chat_id: int, telegram_id, state: FSMContext):
     data = await state.get_data()

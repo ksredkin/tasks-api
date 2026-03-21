@@ -27,6 +27,8 @@ bot_commands = [
     BotCommand(command="delete_folder", description="🚫 Удалить папку"),
     BotCommand(command="timer", description="⏳️ Создать таймер"),
     BotCommand(command="stats", description="📊 Статистика за все время"),
+    BotCommand(command="export_data", description="💾 Экспорт данных"),
+    BotCommand(command="import_data", description="📥 Импорт данных"),
     BotCommand(command="help", description="❓️ Справка")
     ]
 
@@ -82,7 +84,7 @@ async def telegram_bot():
     from bot.utils.temp_files_manager import TempFilesManager
     magaer = TempFilesManager().configure(TEMP_FILES_PATH)
 
-    #await configure_bot(bot)
+    await configure_bot(bot)
     await configure_dp(dp)
     await dp.start_polling(bot)
 
