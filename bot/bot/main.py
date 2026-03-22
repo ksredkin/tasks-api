@@ -29,6 +29,7 @@ bot_commands = [
     BotCommand(command="stats", description="📊 Статистика за все время"),
     BotCommand(command="export_data", description="💾 Экспорт данных"),
     BotCommand(command="import_data", description="📥 Импорт данных"),
+    BotCommand(command="folder_tasks_to_text", description="📃 Получить задачи из папки как текст"),
     BotCommand(command="help", description="❓️ Справка")
     ]
 
@@ -82,7 +83,7 @@ async def telegram_bot():
     storage = AuthStorage()
 
     from bot.utils.temp_files_manager import TempFilesManager
-    magaer = TempFilesManager().configure(TEMP_FILES_PATH)
+    files_manager = TempFilesManager().configure(TEMP_FILES_PATH)
 
     await configure_bot(bot)
     await configure_dp(dp)

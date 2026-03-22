@@ -13,3 +13,7 @@ class FolderUpdate(StatesGroup):
 
 class FolderDelete(StatesGroup):
     waiting_for_folder = State()
+
+class FolderTasksToText(StatesGroup):
+    waiting_for_folder = State()
+    waiting_for_what_to_show = State()

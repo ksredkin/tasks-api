@@ -1,6 +1,6 @@
 from bot.keyboards.inline import get_task_actions_keyboard, get_skip_task_name_keyboard, get_skip_task_text_keyboard, get_folders_and_tasks_list_keyboard, get_choose_folder_keyboard, get_show_progress_choose_keyboard, get_update_skip_name_keyboard, get_update_skip_folder_keyboard, get_update_show_progress_choose_keyboard, get_update_task_choose_folder_keyboard, get_doned_task_actions_keyboard, get_doned_tasks_list_keyboard, get_create_choose_recurrence_type_keyboard, get_cancell_keyboard, get_update_choose_recurrence_type_keyboard, get_today_task_actions_keyboard, get_tasks_list_keyboard, get_create_skip_due_date_keyboard, get_create_skip_visible_from_keyboard, get_update_skip_due_date_keyboard, create_inline_keyboard
 from bot.messages.tasks import enter_new_task_name, enter_new_task_text, successful_mark_a_task_as_completed_message, selected_task_message, successful_undone_task_message, enter_task_recurrence_type, enter_task_recurrence_day_of_week, enter_task_recurrence_month_day, enter_due_date, enter_visible_from
-from bot.utils.helpers import finish_task_creation, finish_task_updation, finish_creating_folder, finish_deleting_folder, finish_folder_updation, finish_task_import, finish_import_data
+from bot.utils.helpers import finish_task_creation, finish_task_updation, finish_creating_folder, finish_deleting_folder, finish_folder_updation, finish_task_import, finish_import_data, finish_folder_tasks_to_text
 from bot.messages.folders import choose_folder_message, show_progress_message, enter_new_name_of_folder, choose_new_folder_message, folder_name_with_progress, folder_name_without_progress
 from bot.messages.common import successfull_operation_cancelling
 from bot.messages.tasks import successful_delete_task_message, get_tasks_message, get_tasks_today_message, get_tasks_today_error
@@ -264,6 +264,33 @@ async def delete_folder(callback: CallbackQuery, state: FSMContext):
     folder_id = int(callback.data.split(":")[1])
     await state.update_data(folder_id=folder_id)
     await finish_deleting_folder(callback.bot, callback.message.chat.id, callback.from_user.id, state)
+    await callback.message.delete()
+
+@callback_router.callback_query(F.data.startswith("choose_folder_to_show_tasks_in_text:"))
+async def folder_tasks_to_text_process_folder(callback: CallbackQuery, state: FSMContext):
+    if not AuthStorage().get_token(callback.from_user.id):
+        await callback.message.edit_text(no_auth_error, parse_mode="html")
+        return
+    
+    folder_id = int(callback.data.split(":")[1])
+    await state.update_data(folder_id=folder_id)
+
+    buttons = {"📕 Название": "choose_what_to_show:name",
+               "📑 Название и описание": "choose_what_to_show:name_and_text",
+               "🗂️ Все данные": "choose_what_to_show:all_data"
+               }
+
+    await callback.message.edit_text("🗺️ Что вывести у задач?", reply_markup=create_inline_keyboard(buttons))
+    
+@callback_router.callback_query(F.data.startswith("choose_what_to_show:"))
+async def folder_tasks_to_text_process_what_to_show(callback: CallbackQuery, state: FSMContext):
+    if not AuthStorage().get_token(callback.from_user.id):
+        await callback.message.edit_text(no_auth_error, parse_mode="html")
+        return
+    
+    what_to_show = callback.data.split(":")[1]
+    await state.update_data(what_to_show=what_to_show)
+    await finish_folder_tasks_to_text(callback.bot, callback.message.chat.id, callback.from_user.id, state)
     await callback.message.delete()
 
 @callback_router.callback_query(F.data.startswith("folder_update_choose:"))

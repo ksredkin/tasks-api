@@ -1,10 +1,10 @@
 from bot.messages.auth import no_auth_error, already_in_account_error, already_without_account_error, enter_login_message, create_login_message, successful_account_logout, successful_login, invalid_credentials, many_attempts_error
-from bot.keyboards.inline import get_cancell_keyboard, get_folders_and_tasks_list_keyboard, get_delete_choose_folder_keyboard, get_update_choose_folder_keyboard, get_doned_tasks_list_keyboard, get_tasks_list_keyboard
+from bot.keyboards.inline import get_cancell_keyboard, get_folders_and_tasks_list_keyboard, get_delete_choose_folder_keyboard, get_update_choose_folder_keyboard, get_doned_tasks_list_keyboard, get_tasks_list_keyboard, create_inline_keyboard
 from bot.messages.tasks import get_tasks_message, enter_task_name, enter_tasks_for_import, get_done_tasks_message, get_tasks_today_message, get_tasks_today_error
 from bot.messages.common import start_message, help_message, create_timer_error, create_timer_message, tasks_stats_message, folder_stats_message
 from bot.states.user_states import UserLogin, UserRegister
 from bot.messages.folders import enter_name_of_new_folder, choose_folder_to_delete_message, choose_folder_to_update_message
-from bot.states.folder_states import FolderCreate, FolderDelete, FolderUpdate
+from bot.states.folder_states import FolderCreate, FolderDelete, FolderUpdate, FolderTasksToText
 from bot.utils.auth_storage import AuthStorage
 from bot.states.task_states import TaskCreate, TaskImport
 from aiogram import Router, filters, types
@@ -129,8 +129,8 @@ async def today(message: types.Message):
         return
 
     tasks = await APIClient.get_user_tasks_today(AuthStorage().get_token(message.from_user.id))
-    
-    if not tasks:
+
+    if not tasks or all(task.get("state") == "Done" for task in tasks):
         await message.answer(get_tasks_today_error, parse_mode="html")
         return
 
@@ -254,3 +254,22 @@ async def logout(message: types.Message):
     AuthStorage().delete_token(message.from_user.id)
     await message.answer(successful_account_logout)
     logger.info(f"Пользователь @{message.from_user.username} (id: {message.from_user.id}) вызвал команду /logout")
+
+@commands_router.message(filters.Command("folder_tasks_to_text"))
+async def folder_tasks_to_text(message: types.Message, state: FSMContext):
+    if not AuthStorage().get_token(message.from_user.id):
+        await message.answer(already_without_account_error, parse_mode="html")
+        return
+
+    folders = await APIClient.get_user_folders(AuthStorage().get_token(message.from_user.id))
+
+    if not folders:
+        await message.answer("🚫 У вас еще нет папок!")    
+        return
+
+    buttons = {f.get("name"): "choose_folder_to_show_tasks_in_text:" + str(f.get("id")) for f in folders}
+
+    await state.set_state(FolderTasksToText.waiting_for_folder)
+
+    await message.answer("📂 Выберите папку:", reply_markup=create_inline_keyboard(buttons))
+    logger.info(f"Пользователь @{message.from_user.username} (id: {message.from_user.id}) вызвал команду /folder_tasks_to_text")

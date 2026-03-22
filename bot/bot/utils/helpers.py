@@ -14,6 +14,7 @@ from bot.core.config import MINUTES_TO_RESET_USER_ATTEMPTS, MAX_LOGIN_ATTEMPTS
 from bot.utils.attempts_storage import AttemptsStorage
 from datetime import datetime
 from json import loads
+from html import escape
 
 logger = Logger(__name__).get_logger()
 
@@ -79,6 +80,53 @@ async def finish_creating_folder(bot: Bot, chat_id: int, telegram_id, state: FSM
     await APIClient.create_folder(token, name, parent_id, show_progress)
 
     message = succes_folder_create.replace("{name}", name)
+    await bot.send_message(chat_id, message, parse_mode="html")
+
+async def finish_folder_tasks_to_text(bot: Bot, chat_id: int, telegram_id, state: FSMContext):
+    data = await state.get_data()
+    await state.clear()
+
+    folder_id = data.get("folder_id")
+    what_to_show = data.get("what_to_show")
+
+    token = AuthStorage().get_token(telegram_id)
+    tasks = await APIClient.get_user_tasks_in_folder(token, folder_id)
+
+    message = ""
+
+    match what_to_show:
+        case "name":
+            for task in tasks:
+                message = message + f'\n{task.get("name")}'        
+        case "name_and_text":
+            for task in tasks:
+                name = f'<b>Задача "{task.get("name")}":</b>'
+                text = task.get("text") if task.get("text") else "Описание не задано."
+                message = message + f'\n{name}\n<b>Описание:</b> {text}\n'
+        case "all_data":
+            folders = await APIClient.get_user_folders(token)
+            formatted_folders = {}
+            for folder in folders:
+                formatted_folders[folder.get("id")] = folder.get("name")
+            for task in tasks:
+                name = f'<b>Задача "{task.get("name")}":</b>'
+                text = escape(task.get("text")) if task.get("text") else "Описание не задано."
+                state = task.get("state") if task.get("state") else "Статус не указан."
+                due_date = datetime.fromisoformat(task.get("due_date")).strftime("%d.%m.%y") if task.get("due_date") else "Ограничений по времени выполнения нет."
+                visible_from = datetime.fromisoformat(task.get("visible_from")).strftime("%d.%m.%y") if task.get("visible_from") else "Не будет отображаться в /today."
+                match task.get("recurrence_type"):
+                    case "daily":
+                        recurrence = "Каждый день."
+                    case "weekly":
+                        recurrence = f"Каждую неделю в {task.get("recurrence_day_of_week")+1} день недели."
+                    case "weekly":
+                        recurrence = f"Каждый месяц в {task.get("recurrence_month_day")} день месяца."
+                folder_name = formatted_folders.get(task.get("folder_id"), "Не в папке.")
+                next_run = datetime.fromisoformat(task.get("next_run")).strftime("%d.%m.%y") if task.get("next_run") else "Не пересоздастся после выполнения."
+
+                message = message + f'\n{name}\n<b>Описание:</b> {text}\n<b>Статус:</b> {state}\n<b>Выполнить до:</b> {due_date}\n<b>Отображается в /today с:</b> {visible_from}\n<b>Повторяется:</b> {recurrence}\n<b>Время следующего создания:</b> {next_run}\n<b>Папка:</b> "{folder_name}"\n'
+        
+
     await bot.send_message(chat_id, message, parse_mode="html")
 
 async def finish_deleting_folder(bot: Bot, chat_id: int, telegram_id, state: FSMContext):
