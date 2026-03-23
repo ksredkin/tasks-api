@@ -97,11 +97,11 @@ docker-compose up --build
 ```
 
 ### 🌐 Доступ
-API: http://localhost:8080
-Swagger: http://localhost:8080/docs
-Frontend: http://localhost:8000
+API: http://localhost:8080<br>
+Swagger: http://localhost:8080/docs<br>
+Frontend: http://localhost:8000<br>
 Telegram Bot: через Telegram
 
 ---
 
-⭐ Если проект понравился — поставь звезду!
+⭐ Если проект понравился - поставь звезду!
