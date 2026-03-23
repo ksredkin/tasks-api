@@ -32,7 +32,7 @@ help_message = """📋 <b>Доступные команды:</b>
 /help - ❓️ Справка по командам
 """
 
-successfull_operation_cancelling = "✅ Операция отменена"
+successfull_operation_cancelling = "✅ Операция отменена."
 
 server_error_message = "🚫 <b>Ошибка:</b> ошибка на стороне API или бота."
 
