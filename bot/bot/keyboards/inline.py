@@ -249,6 +249,7 @@ def get_update_skip_due_date_keyboard() -> InlineKeyboardMarkup:
 def get_update_skip_visible_from_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text="⏩️ Не обновлять", callback_data="skip_update_visible_from")
+    builder.button(text="📅 Начиная с сегодня", callback_data="update_visible_from:today")
     builder.button(text="🚫 Отмена", callback_data="cancell")
     builder.adjust(1, repeat=True)
     return builder.as_markup()
@@ -256,6 +257,7 @@ def get_update_skip_visible_from_keyboard() -> InlineKeyboardMarkup:
 def get_create_skip_visible_from_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text="⏩️ Пропустить", callback_data="skip_create_visible_from")
+    builder.button(text="📅 Начиная с сегодня", callback_data="create_visible_from:today")
     builder.button(text="🚫 Отмена", callback_data="cancell")
     builder.adjust(1, repeat=True)
     return builder.as_markup()
@@ -311,9 +313,12 @@ def get_update_task_choose_folder_keyboard(folders: list[dict]|None) -> InlineKe
     return builder.as_markup()
 
 def create_inline_keyboard(buttons: dict[str, str], adjust: list = [1], repeat: bool = True) -> InlineKeyboardMarkup:
-    """Принимает словарь text:callback, создает и возвращает на его основе inline клавиатуру"""
     builder = InlineKeyboardBuilder()
     for text, callback in buttons.items():
         builder.button(text=text, callback_data=callback)
     builder.adjust(*adjust, repeat=repeat)
     return builder.as_markup()
+
+def create_cancell_inline_keyboard(buttons: dict[str, str], adjust: list = [1], repeat: bool = True) -> InlineKeyboardMarkup:
+    new_buttons = buttons + {"🚫 Отмена": "cancell"}
+    return create_inline_keyboard(new_buttons, adjust, repeat)

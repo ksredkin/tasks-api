@@ -1,4 +1,4 @@
-from bot.keyboards.inline import get_task_actions_keyboard, get_skip_task_name_keyboard, get_skip_task_text_keyboard, get_folders_and_tasks_list_keyboard, get_choose_folder_keyboard, get_show_progress_choose_keyboard, get_update_skip_name_keyboard, get_update_skip_folder_keyboard, get_update_show_progress_choose_keyboard, get_update_task_choose_folder_keyboard, get_doned_task_actions_keyboard, get_doned_tasks_list_keyboard, get_create_choose_recurrence_type_keyboard, get_cancell_keyboard, get_update_choose_recurrence_type_keyboard, get_today_task_actions_keyboard, get_tasks_list_keyboard, get_create_skip_due_date_keyboard, get_create_skip_visible_from_keyboard, get_update_skip_due_date_keyboard, create_inline_keyboard
+from bot.keyboards.inline import get_task_actions_keyboard, get_skip_task_name_keyboard, get_skip_task_text_keyboard, get_folders_and_tasks_list_keyboard, get_choose_folder_keyboard, get_show_progress_choose_keyboard, get_update_skip_name_keyboard, get_update_skip_folder_keyboard, get_update_show_progress_choose_keyboard, get_update_task_choose_folder_keyboard, get_doned_task_actions_keyboard, get_doned_tasks_list_keyboard, get_create_choose_recurrence_type_keyboard, get_cancell_keyboard, get_update_choose_recurrence_type_keyboard, get_today_task_actions_keyboard, get_tasks_list_keyboard, get_create_skip_due_date_keyboard, get_create_skip_visible_from_keyboard, get_update_skip_due_date_keyboard, create_inline_keyboard, create_cancell_inline_keyboard
 from bot.messages.tasks import enter_new_task_name, enter_new_task_text, successful_mark_a_task_as_completed_message, selected_task_message, successful_undone_task_message, enter_task_recurrence_type, enter_task_recurrence_day_of_week, enter_task_recurrence_month_day, enter_due_date, enter_visible_from
 from bot.utils.helpers import finish_task_creation, finish_task_updation, finish_creating_folder, finish_deleting_folder, finish_folder_updation, finish_task_import, finish_import_data, finish_folder_tasks_to_text
 from bot.messages.folders import choose_folder_message, show_progress_message, enter_new_name_of_folder, choose_new_folder_message, folder_name_with_progress, folder_name_without_progress
@@ -13,7 +13,7 @@ from bot.utils.api_client import APIClient
 from aiogram.types import CallbackQuery
 from bot.utils.logger import Logger
 from aiogram import Router, F
-from datetime import datetime
+from datetime import datetime, timezone
 import html
 
 logger = Logger(__name__).get_logger()
@@ -35,6 +35,32 @@ async def create_task_process_due_date(callback: CallbackQuery, state: FSMContex
         return
 
     await finish_task_creation(callback.bot, callback.message.chat.id, callback.from_user.id, state)
+    await callback.message.delete()
+
+@callback_router.callback_query(F.data == "create_visible_from:today")
+async def create_task_process_visible_from_today(callback: CallbackQuery, state: FSMContext):
+    if not AuthStorage().get_token(callback.from_user.id):
+        await callback.message.edit_text(no_auth_error, parse_mode="html")
+        return
+
+    now = datetime.now(timezone.utc)
+    today = datetime(now.year, now.month, now.day, 0, 0, 0, 0, timezone.utc)
+
+    await state.update_data(visible_from=today)
+    await finish_task_creation(callback.bot, callback.message.chat.id, callback.from_user.id, state)
+    await callback.message.delete()
+
+@callback_router.callback_query(F.data == "update_visible_from:today")
+async def update_task_process_visible_from_today(callback: CallbackQuery, state: FSMContext):
+    if not AuthStorage().get_token(callback.from_user.id):
+        await callback.message.edit_text(no_auth_error, parse_mode="html")
+        return
+
+    now = datetime.now(timezone.utc)
+    today = datetime(now.year, now.month, now.day, 0, 0, 0, 0, timezone.utc)
+
+    await state.update_data(visible_from=today)
+    await finish_task_updation(callback.bot, callback.message.chat.id, callback.from_user.id, state)
     await callback.message.delete()
 
 @callback_router.callback_query(F.data == "skip_update_due_date")
@@ -280,7 +306,7 @@ async def folder_tasks_to_text_process_folder(callback: CallbackQuery, state: FS
                "🗂️ Все данные": "choose_what_to_show:all_data"
                }
 
-    await callback.message.edit_text("🗺️ Что вывести у задач?", reply_markup=create_inline_keyboard(buttons))
+    await callback.message.edit_text("🗺️ Что вывести у задач?", reply_markup=create_cancell_inline_keyboard(buttons))
     
 @callback_router.callback_query(F.data.startswith("choose_what_to_show:"))
 async def folder_tasks_to_text_process_what_to_show(callback: CallbackQuery, state: FSMContext):
@@ -380,11 +406,8 @@ async def import_data_process_type(callback: CallbackQuery, state: FSMContext):
     import_type = callback.data.split(":")[1]
     await state.update_data(import_type=import_type)
 
-    buttons = {"✅ Продолжить": "finish_import_data",
-               "🚫 Отмена": "cancell"
-               }
-    keyboard = create_inline_keyboard(buttons)
-
+    buttons = {"✅ Продолжить": "finish_import_data"}
+    keyboard = create_cancell_inline_keyboard(buttons)
     await callback.message.edit_text("❓ Вы уверены, что хотите продолжить?", reply_markup=keyboard)
 
 @callback_router.callback_query(F.data == "finish_import_data")

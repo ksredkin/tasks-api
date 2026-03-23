@@ -1,4 +1,4 @@
-from bot.keyboards.inline import get_skip_keyboard, get_cancell_keyboard, get_skip_task_text_keyboard, get_choose_folder_keyboard, get_create_choose_folder_keyboard, get_update_skip_folder_keyboard, get_update_task_choose_folder_keyboard, get_import_choose_folder_keyboard, get_create_skip_due_date_keyboard, get_create_skip_visible_from_keyboard, get_update_skip_due_date_keyboard, get_update_skip_visible_from_keyboard, create_inline_keyboard
+from bot.keyboards.inline import get_skip_keyboard, get_cancell_keyboard, get_skip_task_text_keyboard, get_choose_folder_keyboard, get_create_choose_folder_keyboard, get_update_skip_folder_keyboard, get_update_task_choose_folder_keyboard, get_import_choose_folder_keyboard, get_create_skip_due_date_keyboard, get_create_skip_visible_from_keyboard, get_update_skip_due_date_keyboard, get_update_skip_visible_from_keyboard, create_inline_keyboard, create_cancell_inline_keyboard
 from bot.utils.helpers import finish_task_creation, finish_login, finish_register, finish_task_updation
 from bot.messages.auth import no_auth_error, enter_password_message, create_password_message, many_attempts_error
 from bot.messages.tasks import enter_task_text, enter_new_task_text, enter_due_date, enter_due_date_error, enter_visible_from
@@ -286,4 +286,4 @@ async def import_data(message: types.Message, state: FSMContext):
     file = await message.bot.download(message.document)
     await state.update_data(file=file)
     await state.set_state(DataImport.waiting_for_import_type)
-    await message.answer("🧭 Как обработать существующие задачи и папки?", reply_markup=create_inline_keyboard(buttons))
+    await message.answer("🧭 Как обработать существующие задачи и папки?", reply_markup=create_cancell_inline_keyboard(buttons))

@@ -1,5 +1,5 @@
 from bot.messages.auth import no_auth_error, already_in_account_error, already_without_account_error, enter_login_message, create_login_message, successful_account_logout, successful_login, invalid_credentials, many_attempts_error
-from bot.keyboards.inline import get_cancell_keyboard, get_folders_and_tasks_list_keyboard, get_delete_choose_folder_keyboard, get_update_choose_folder_keyboard, get_doned_tasks_list_keyboard, get_tasks_list_keyboard, create_inline_keyboard
+from bot.keyboards.inline import get_cancell_keyboard, get_folders_and_tasks_list_keyboard, get_delete_choose_folder_keyboard, get_update_choose_folder_keyboard, get_doned_tasks_list_keyboard, get_tasks_list_keyboard, create_inline_keyboard, create_cancell_inline_keyboard
 from bot.messages.tasks import get_tasks_message, enter_task_name, enter_tasks_for_import, get_done_tasks_message, get_tasks_today_message, get_tasks_today_error
 from bot.messages.common import start_message, help_message, create_timer_error, create_timer_message, tasks_stats_message, folder_stats_message
 from bot.states.user_states import UserLogin, UserRegister
