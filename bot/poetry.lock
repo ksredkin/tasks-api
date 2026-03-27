@@ -1210,6 +1210,17 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
+name = "singbox2proxy"
+version = "0.2.7"
+description = "🐳 Use sing-box (v2ray) proxies (VLESS + REALITY, VMess, Trojan, Shadowsocks, Hysteria, Hysteria2, TUIC, WireGuard, SSH) directly in your http clients, with chaining support and easy CLI"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "singbox2proxy-0.2.7-py3-none-any.whl", hash = "sha256:eca3a45ed95de766566c7bc6082ffede039f217de434bff4d7826a6941d0c138"},
+    {file = "singbox2proxy-0.2.7.tar.gz", hash = "sha256:f31c9e8d5f8ab7050a79219787c957dd1127f6d69e5446a63af5d042d44a30cf"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
@@ -1396,4 +1407,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.13,<3.15"
-content-hash = "bd3328940dd321a5dd0d32f29feda082cd503ad19f00cfd8a9156bd9532da904"
+content-hash = "c88af00d385203f85c59c1a7f9bf2004029950ec351252171676969b60d82efe"

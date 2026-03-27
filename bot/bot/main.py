@@ -3,12 +3,17 @@ from bot.handlers.callback import callback_router
 from bot.handlers.messages import messages_router
 from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand, InputProfilePhotoStatic, FSInputFile
-from bot.utils.env_config import EnvConfig
 from bot.utils.logger import Logger
 import asyncio
 from bot.services.update_tasks_service import update_tasks_service
 from bot.core.config import BOT_PHOTO_PATH, BOT_NAME, BOT_DESCRIPTION, BOT_PROFILE_DESCRIPTION, TEMP_FILES_PATH
 from aiogram.client.session.aiohttp import AiohttpSession
+import os
+from aiogram.client.default import DefaultBotProperties
+from singbox2proxy import SingBoxProxy
+from bot.utils.auth_storage import AuthStorage
+from bot.utils.temp_files_manager import TempFilesManager
+import sys
 
 logger = Logger(__name__).get_logger()
 
@@ -70,24 +75,38 @@ async def configure_dp(dp: Dispatcher):
     dp.include_router(messages_router)
 
 async def telegram_bot():
-    config = EnvConfig()
-    if proxy_address := config.get_proxy_address():
-        session = AiohttpSession(proxy=proxy_address)
-        bot = Bot(config.get_token(), session=session)
-    else:
-        bot = Bot(config.get_token())
+    try:
+        properties = DefaultBotProperties(parse_mode="html")
 
-    dp = Dispatcher()
+        if os.getenv("PROXY"):    
+            logger.info("Запуск с ипользованием proxy")
+            session = AiohttpSession(proxy=os.getenv("PROXY"))
+            bot = Bot(os.getenv("TOKEN"), session, properties)
+            
+        elif os.getenv("VLESS_PROXY"):
+            logger.info("Запуск с ипользованием VLESS proxy")
 
-    from bot.utils.auth_storage import AuthStorage
-    storage = AuthStorage()
+            proxy = SingBoxProxy(os.getenv("VLESS_PROXY"))
+            proxy.start()
 
-    from bot.utils.temp_files_manager import TempFilesManager
-    files_manager = TempFilesManager().configure(TEMP_FILES_PATH)
+            session = AiohttpSession(proxy=proxy.socks5_proxy_url)
+            bot = Bot(os.getenv("TOKEN"), session, properties)
+            
+        else:
+            logger.info("Запуск без proxy")
+            bot = Bot(os.getenv("TOKEN"), default=properties)
 
-    await configure_bot(bot)
-    await configure_dp(dp)
-    await dp.start_polling(bot)
+        dp = Dispatcher()
+        storage = AuthStorage()
+        files_manager = TempFilesManager().configure(TEMP_FILES_PATH)
+
+        await configure_bot(bot)
+        await configure_dp(dp)
+        await dp.start_polling(bot)
+
+    except Exception as e:
+        logger.critical(f"Работа бота остановлена: {e}")
+        sys.exit(1)
 
 async def start_telegram_bot():
     bot = asyncio.create_task(telegram_bot())

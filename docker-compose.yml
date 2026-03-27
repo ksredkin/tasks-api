@@ -47,6 +47,7 @@ services:
       API_HOST: api
       API_KEY: ${API_KEY}
       PROXY: ${PROXY}
+      VLESS_PROXY: ${VLESS_PROXY}
       TOKEN: ${TOKEN}
     volumes:
       - ./bot:/app
