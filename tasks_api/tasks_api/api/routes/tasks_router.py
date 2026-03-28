@@ -4,43 +4,43 @@ from tasks_api.utils.response_factory import ResponseFactory
 from tasks_api.repositories.orm_task_repository import OrmTaskRepository
 from tasks_api.repositories.orm_user_repository import OrmUserRepository
 from tasks_api.models.schemas import TaskCreate, TaskResponse, TaskUpdate, ApiKeyRequest
-from tasks_api.utils.env_config import EnvConfig
 from tasks_api.utils.api_key_banlist import ApiKeyBanlist
 from tasks_api.models.schemas import TaskResponse
+import os
 
 tasks_router = APIRouter(prefix="/tasks")
 
 @tasks_router.get("/", status_code=200, response_model=list[TaskResponse])
-def get_tasks(user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
+async def get_tasks(user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
     try:
-        tasks = OrmTaskRepository.get_user_tasks(user_id)
+        tasks = await OrmTaskRepository.get_user_tasks(user_id)
         return tasks or []
     
     except HTTPException:
         raise
 
 @tasks_router.get("/stats", status_code=200)
-def get_tasks_stats(user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
+async def get_tasks_stats(user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
     try:
-        stats = OrmTaskRepository.get_tasks_stats(user_id)
+        stats = await OrmTaskRepository.get_tasks_stats(user_id)
         return stats or {}
     
     except HTTPException:
         raise
 
 @tasks_router.get("/today", status_code=200, response_model=list[TaskResponse])
-def get_tasks_today(user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
+async def get_tasks_today(user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
     try:
-        tasks = OrmTaskRepository.get_user_tasks_today(user_id)
+        tasks = await OrmTaskRepository.get_user_tasks_today(user_id)
         return tasks or []
     
     except HTTPException:
         raise
 
 @tasks_router.get("/{id}", status_code=200, response_model=TaskResponse)
-def get_task(id: int, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
+async def get_task(id: int, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
     try:
-        task = OrmTaskRepository.get_user_task_by_id(user_id, id)
+        task = await OrmTaskRepository.get_user_task_by_id(user_id, id)
 
         if not task:
             raise ResponseFactory.error_response(status.HTTP_404_NOT_FOUND, "Not found")
@@ -51,9 +51,9 @@ def get_task(id: int, user_id: int = Depends(AuthService(OrmUserRepository).get_
         raise
 
 @tasks_router.post("/", response_model=TaskResponse, status_code=201)
-def create_task(task: TaskCreate, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
+async def create_task(task: TaskCreate, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
     try:
-        task = OrmTaskRepository.create_task(user_id, task.name, task.text, task.state, task.folder_id, task.recurrence_type, task.recurrence_day_of_week, task.recurrence_month_day, task.due_date, task.visible_from)
+        task = await OrmTaskRepository.create_task(user_id, task.name, task.text, task.state, task.folder_id, task.recurrence_type, task.recurrence_day_of_week, task.recurrence_month_day, task.due_date, task.visible_from)
         
         if not task:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to create task")
@@ -64,9 +64,9 @@ def create_task(task: TaskCreate, user_id: int = Depends(AuthService(OrmUserRepo
         raise
 
 @tasks_router.post("/import", status_code=200, response_model=TaskResponse)
-def import_tasks(tasks: list[TaskResponse], import_type: str, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
+async def import_tasks(tasks: list[TaskResponse], import_type: str, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
     try:
-        is_success = OrmTaskRepository.import_tasks(user_id, tasks, import_type)
+        is_success = await OrmTaskRepository.import_tasks(user_id, tasks, import_type)
         
         if not is_success:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to import tasks")
@@ -77,9 +77,9 @@ def import_tasks(tasks: list[TaskResponse], import_type: str, user_id: int = Dep
         raise
 
 @tasks_router.put("/{task_id}", response_model=TaskResponse, status_code=200)
-def update_task(task_id: int, task_data: TaskUpdate, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
+async def update_task(task_id: int, task_data: TaskUpdate, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
     try:
-        task = OrmTaskRepository.update_task(user_id, task_id, task_data.name, task_data.text, task_data.state, task_data.folder_id, task_data.recurrence_type, task_data.recurrence_day_of_week, task_data.recurrence_month_day, task_data.due_date, task_data.visible_from)
+        task = await OrmTaskRepository.update_task(user_id, task_id, task_data.name, task_data.text, task_data.state, task_data.folder_id, task_data.recurrence_type, task_data.recurrence_day_of_week, task_data.recurrence_month_day, task_data.due_date, task_data.visible_from)
         
         if not task:
             raise ResponseFactory.error_response(status.HTTP_404_NOT_FOUND, "Task not found")
@@ -90,9 +90,9 @@ def update_task(task_id: int, task_data: TaskUpdate, user_id: int = Depends(Auth
         raise
 
 @tasks_router.delete("/{task_id}", status_code=200, response_model=TaskResponse)
-def delete_task(task_id: int, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
+async def delete_task(task_id: int, user_id: int = Depends(AuthService(OrmUserRepository).get_current_user)):
     try:
-        task = OrmTaskRepository.delete_task(user_id, task_id)
+        task = await OrmTaskRepository.delete_task(user_id, task_id)
         
         if task is None:
             raise ResponseFactory.error_response(status.HTTP_404_NOT_FOUND, "Task not found")
@@ -103,18 +103,16 @@ def delete_task(task_id: int, user_id: int = Depends(AuthService(OrmUserReposito
         raise
 
 @tasks_router.post("/repeat", status_code=200)
-def update_repeat_tasks(request: Request, api_key_request: ApiKeyRequest):
+async def update_repeat_tasks(request: Request, api_key_request: ApiKeyRequest):
     try:
         if ApiKeyBanlist().is_in_banlist(request.client.host):
             raise HTTPException(429, "Too many attempts. You have been blocked.")
 
-        config = EnvConfig()
-
-        if not api_key_request.api_key == config.get_api_key():
+        if not api_key_request.api_key == os.getenv("API_KEY"):
             ApiKeyBanlist().add_ip(request.client.host)
             raise ResponseFactory.error_response(status.HTTP_400_BAD_REQUEST, "Invalid api_key. You have been blocked.")
 
-        OrmTaskRepository.update_repeat_tasks()
+        await OrmTaskRepository.update_repeat_tasks()
 
         return {"status": "success"}
 

@@ -4,9 +4,9 @@ from tasks_api.api.routes.folders_router import folders_router
 from tasks_api.utils.env_config import EnvConfig
 from tasks_api.utils.jwt import JWTManager
 from tasks_api.utils.logger import Logger
-from tasks_api.core.config import API_HOST, API_PORT
 from fastapi import FastAPI
 import uvicorn
+import os
 
 def create_app() -> FastAPI:
     app = FastAPI()
@@ -26,8 +26,11 @@ def start_api():
         app = create_app()        
         configure_app(app)
         
-        logger.info(f"API запускается на {API_HOST}:{API_PORT}")
-        uvicorn.run(app, host=API_HOST, port=API_PORT)
+        api_host = os.getenv("API_HOST")
+        api_port = int(os.getenv("API_PORT"))
+
+        logger.info(f"API запускается на {api_host}:{api_port}")
+        uvicorn.run(app, host=api_host, port=api_port)
 
     except Exception as e:
         logger.critical(f"Не удалось запустить API: {e}")

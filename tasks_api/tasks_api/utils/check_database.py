@@ -1,18 +1,18 @@
-from tasks_api.utils.env_config import EnvConfig
 from tasks_api.utils.logger import Logger
 import psycopg2
 from sqlalchemy import create_engine
+import os
+import subprocess
 
 logger = Logger(__name__).get_logger()
 
 def check_database():
     try:
         logger.info("Проверка PostgreSQL...")
-        config = EnvConfig()
-        db_name = config.get_db_name()
+        db_name = os.getenv("DB_NAME")
 
         try:
-            engine = create_engine(f"postgresql+psycopg2://{config.get_db_user()}:{config.get_db_password()}@{config.get_db_host()}:{config.get_db_port()}/{db_name}")
+            engine = create_engine(f"postgresql+psycopg2://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}@{os.getenv("DB_HOST")}:{os.getenv("DB_PORT")}/{os.getenv("DB_NAME")}")
 
             with engine.connect() as _:
                 logger.info(f"База данных {db_name} существует")
@@ -23,11 +23,11 @@ def check_database():
             logger.info(f"База {db_name} не найдена, создаём...")
             
             conn = psycopg2.connect(
-                host=config.get_db_host(),
-                port=config.get_db_port(),
+                host=os.getenv("DB_HOST"),
+                port=os.getenv("DB_PORT"),
                 database="postgres",
-                user=config.get_db_user(),
-                password=config.get_db_password()
+                user=os.getenv("DB_USER"),
+                password=os.getenv("DB_PASSWORD")
             )
             conn.autocommit = True
             
@@ -39,11 +39,11 @@ def check_database():
             logger.info(f"База {db_name} создана")
 
         conn = psycopg2.connect(
-            host=config.get_db_host(),
-            port=config.get_db_port(),
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
             database=db_name,
-            user=config.get_db_user(),
-            password=config.get_db_password()
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD")
         )
         conn.autocommit = False
         cursor = conn.cursor()
@@ -57,8 +57,6 @@ def check_database():
             conn.rollback()
 
             logger.info("Применяем миграции Alembic...")
-            import subprocess
-
             result = subprocess.run(
                 ["alembic", "upgrade", "head"],
                 capture_output=True,
@@ -74,10 +72,6 @@ def check_database():
         
         cursor.close()
         conn.close()
-        
-        from tasks_api.database.connection import db
-        db.reconnect()
-
         logger.info("PostgreSQL готов к работе")
     
     except Exception as e:

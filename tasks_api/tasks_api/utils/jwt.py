@@ -3,6 +3,9 @@ from tasks_api.utils.response_factory import ResponseFactory
 from datetime import datetime, timezone, timedelta
 from fastapi import status
 from jose import jwt, JWTError
+from tasks_api.utils.logger import Logger
+
+logger = Logger(__name__).get_logger()
 
 class JWTManager:
     """Класс для работы с jwt"""
@@ -21,6 +24,7 @@ class JWTManager:
             return payload
 
         except JWTError as e:
+            logger.warning(f"Не удалось извлечь payload из токена: {e}")
             raise ResponseFactory.error_response(status.HTTP_401_UNAUTHORIZED, "Invalid token")
 
     @classmethod

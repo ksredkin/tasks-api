@@ -8,9 +8,9 @@ from tasks_api.core.config import MAX_ATTEMPTS_TO_LOGIN
 user_router = APIRouter(prefix="/user")
 
 @user_router.post("/register", response_model=UserResponse)
-def register(user_data: UserCreate):
+async def register(user_data: UserCreate):
     try:
-        user = UserService.create_new_user(user_data.login, user_data.password)
+        user = await UserService.create_new_user(user_data.login, user_data.password)
         if user is None:
             raise ResponseFactory.error_response(detail="Username already exists")
         return user
@@ -19,14 +19,14 @@ def register(user_data: UserCreate):
         raise
 
 @user_router.post("/login")
-def login(request: Request, user_login: UserLogin):
+async def login(request: Request, user_login: UserLogin):
     try:
         storage = AttemptsStorage()
 
         if storage.get_attempts(request.client.host, user_login.login) > MAX_ATTEMPTS_TO_LOGIN:
             raise HTTPException(429, "Too many login attempts")
 
-        token = UserService.login(user_login.login, user_login.password)
+        token = await UserService.login(user_login.login, user_login.password)
         
         if token is None:
             storage.add_attempt(request.client.host, user_login.login)

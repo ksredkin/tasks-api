@@ -28,6 +28,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       SECRET_KEY: ${SECRET_KEY}
       API_KEY: ${API_KEY}
+      API_PORT: ${API_PORT}
+      API_HOST: ${API_HOST}
     ports:
       - "8000:8000"
     volumes:

@@ -111,7 +111,7 @@ async def tasks(message: types.Message):
         await message.answer(no_auth_error, parse_mode="html")
         return
 
-    all_tasks = await APIClient.get_user_tasks_in_folder(AuthStorage().get_token(message.from_user.id), 0)
+    all_tasks = await APIClient.get_user_tasks_in_folder(AuthStorage().get_token(message.from_user.id), 0) or []
     
     tasks = []
     for task in all_tasks:

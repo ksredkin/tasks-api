@@ -8,7 +8,6 @@
 ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge\&logo=jsonwebtokens\&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge\&logo=docker\&logoColor=white)
 ![Alembic](https://img.shields.io/badge/Alembic-00A98F?style=for-the-badge\&logo=alembic\&logoColor=white)
-![Unit Testing](https://img.shields.io/badge/Unit_Testing-4CAF50?style=for-the-badge)
 
 ---
 
@@ -37,7 +36,6 @@
 * ✅ Alembic миграции
 * ✅ Логирование
 * ✅ Защита от брутфорса
-* ✅ Покрытие тестами
 
 ### 🔹 Telegram Bot
 

@@ -10,15 +10,17 @@ context = CryptContext(
 
 class UserService:
     """Сервис для работы с пользователями"""
-    def create_new_user(login: str, password: str) -> User | None:
+    async def create_new_user(login: str, password: str) -> User|None:
         """Создает нового пользователя, возвращает успех или нет в bool"""
-        if OrmUserRepository.get_user_password_by_login(login):
+        password = await OrmUserRepository.get_user_password_by_login(login)
+        if password:
             return None
-        return OrmUserRepository.create_user(login, context.hash(password))
+        user = await OrmUserRepository.create_user(login, context.hash(password))
+        return user
     
-    def login(login: str, password: str) -> str | None:
+    async def login(login: str, password: str) -> str|None:
         """При верных логине и пароле возвращает jwt токен, при неверных - None"""
-        user = OrmUserRepository.get_user_by_login(login)
+        user = await OrmUserRepository.get_user_by_login(login)
         if not user:
             return None
         if not context.verify(password, user.password):
